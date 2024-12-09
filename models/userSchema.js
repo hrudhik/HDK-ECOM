@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { search } = require("../server");
+// const { search } = require("../server");
 const {Schema}= mongoose;
 
 
@@ -64,7 +64,7 @@ const userSchema = new Schema({
     },
     redeemedUsers:[{
         type:Schema.Types.ObjectId,
-        ref:"User"
+        // ref:"User"
     }],
     searchHistory:[{
         catogary:{

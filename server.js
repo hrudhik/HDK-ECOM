@@ -1,5 +1,6 @@
 const express= require("express");
 const app= express();
+const session = require('express-session');
 const path = require("path");
 const env=require("dotenv").config();
 const db=require("./config/db")
@@ -10,6 +11,16 @@ db()
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
+app.use(session({
+    secret:process.env.SESSION_SEACRETP,
+    resave:false,
+    saveUninitialized:true,
+    cooki:{
+        secure:false,
+        httpOnly:true,
+        maxAge:72*60*60*1000
+    }
+}))
 
 
 app.set("view engine","ejs");
