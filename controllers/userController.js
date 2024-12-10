@@ -1,6 +1,7 @@
 const User=require("../models/userSchema");
 const nodemailer= require("nodemailer");
 const env = require("dotenv").config();   
+const bcrypt=require('bcrypt');
 
 
 
@@ -16,15 +17,40 @@ const pagenotfound= async(req,res)=>{
     }
 }
 
-const loadhomepage= async(req,res)=>{
-    try {
-        return res.render("home")
-    } catch (error) {
-        console.log("the home page is note loading ");
-        res.status(500).send("internal server error")
+// const loadhomepage= async(req,res)=>{
+//     try {
+//         const user=req.session.user;
+//         if(user){
+//             const userData= await User.findOne({_id:user._id});
+//             res.render("home",{user:userData})
+//         }else{
+//             res.render("home")
+//         }
+         
+//     } catch (error) {
+//         console.log("the home page is note loading ");
+//         res.status(500).send("internal server error")
         
+//     }
+// }
+
+const loadhomepage = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        console.log('User ID from session:', userId); // Debugging log
+        if (userId) {
+            const userData = await User.findById(userId);
+            console.log('Fetched user data:', userData); // Debugging log
+            res.render("home", { user: userData });
+        } else {
+            res.render("home");
+        }
+    } catch (error) {
+        console.log("the home page is not loading ", error);
+        res.status(500).send("internal server error");
     }
-}
+};
+
 
 const loadsignUp=async(req,res)=>{
     try {
@@ -110,91 +136,17 @@ const signUp=async(req,res)=>{
     }
 }
 
-// //main
-// const verifyotp=async(req,res)=>{
-//     try {
-//         const {otp}=req.body;
-
-//         console.log(otp);
-
-//         if(otp){
-//             const user=req.session.userData;
-
-//             const saveUserdata=new User({
-//                 name:user.name,
-//                 email:user.email,
-//                 phone:user.phone,
-//                 password:user.password
-//             })
-
-//             await saveUserdata.save();
-//             req.session.user=saveUserdata._id;
-//             // res.json({success:true, redirectUrl:"/"})
-//             res.redirect('/')
-//         }else{
-//             res.status(400).json({success:false,message:"Invalide ITP, please try again "})
-//         }
-//     } catch (error) {
-//         console.error("error verifying otp",error);
-//         res.status(500).json({success:false,message:"an error occured"})
-//     }
-// }
 
 
-// // const resendotp= async(req,res)=>{
-// //     try {
-// //         const {email}=req.session.userData;
-// //         if(!email){
-// //             return res.status(400).json({success:false,message:"Email not found in session "})
-// //         }
-
-// //         const otp=generateotp();
-// //         req.session.userOtp=otp;
-
-// //         const emailSent= await sendVerificationemail(email,otp);
-// //         if(emailSent){
-// //             console.log("REsend OTP,",otp);
-// //             res.status(200).json({success:true,message:"otp resend succesfully"})
-
-            
-// //         }else{
-// //             res.status(500).json({success:false,message:"Failed to resend OTP.Please ty again"}); 
-// //         }
-// //         console.log(otp);
+const hashpassword=async (password)=>{
+    try {
+        const passwordHash= await bcrypt.hash(password,10)
+        return passwordHash;
+    } catch (error) {
+        console.log("password hasing is failed, the password is stored in readeable formate Please check the bcrypt module is working propperly ",error);
         
-// //     } catch (error) {
-// //         console.error("Error sending OTP",error)
-// //         res.status(500).json({succes:false,message:"Internal Server error. Please tey again "})
-// //     }
-// // }
-
-// const resendotp = async (req, res) => {
-//     try {
-//         const { email } = req.session.userData;
-//         if (!email) {
-//             return res.status(400).json({ success: false, message: "Email not found in session." });
-//         }
-
-//         const otp = genarateotp();
-//         req.session.userOtp = otp; // Update session with new OTP
-
-//         console.log("Generated Resend OTP:", otp); // Log for debugging
-
-//         const emailSent = await sendVerificationemail(email, otp);
-//         if (emailSent) {
-//             console.log("Resent OTP successfully:", otp);
-//             res.status(200).json({ success: true, message: "OTP resent successfully." });
-//         } else {
-//             res.status(500).json({ success: false, message: "Failed to resend OTP. Please try again." });
-//         }
-//     } catch (error) {
-//         console.error("Error resending OTP:", error);
-//         res.status(500).json({ success: false, message: "Internal server error. Please try again." });
-//     }
-// };
-
-
-
+    }
+}
 const verifyotp= async(req,res)=>{
     try {
         const {otp}=req.body;
@@ -202,11 +154,12 @@ const verifyotp= async(req,res)=>{
 
         if(otp === req.session.userOtp){
             const user= req.session.userData
+            const hashedpassword = await hashpassword(user.password)
             const saveUserdata=new User({
                  name:user.name,
                  email:user.email,
                  phone:user.phone,
-                 password:user.password
+                 password:hashedpassword
 
 
         })
@@ -246,11 +199,58 @@ const resendotp=async(req,res)=>{
     }
 }
 
+const loadlogin=async(req,res)=>{
+    try {
+        if(!req.session.user){
+            return res.render("login")
+        }else{
+            res.redirect('/')
+        }
+    } catch (error) {
+        res.redirect("/pagenotfound")
+        
+    }
+}
+
+const login= async(req,res)=>{
+    try {
+        const {email,password}=req.body;
+        const findUser= await User.findOne({isAdmin:0,email:email});
+
+        if(!findUser){
+            return res.render("login",{message:"User not found "});
+        }
+        if(findUser.isBlocked){
+            return res.render("login",{message:"User is blocked by admin "})
+        }
+
+        const passwordMatch= await bcrypt.compare(password,findUser.password);
+
+        if(!passwordMatch){
+        return res.render("login",{message:"Incorrect password "});
+
+        }
+
+        req.session.user=findUser._id;
+        res.redirect('/');
+        console.log("user login succesfull")
+
+    } catch (error) {
+        console.error("login error",error);
+        res,render =("login",{message:"login failed. Please try again "})
+        
+    }
+}
+
+
 module.exports={
     loadhomepage,
     pagenotfound,
     loadsignUp,
     signUp,
     verifyotp,
-    resendotp
+    resendotp,
+    loadlogin,
+    login
+
 }

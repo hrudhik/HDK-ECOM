@@ -232,68 +232,6 @@
         return false
     }
 
-//     document.getElementById("otp").focus();
-//     let timerInterval; // Declare timer variable globally
-//     let timer = 60; // Set timer duration in seconds
-
-// function startTimer() {
-//     const timerDisplay = document.getElementById("timerValue");
-//     const resendButton = document.getElementById("resendOtpButton");
-
-//     // Disable resend button while the timer is running
-//     resendButton.disabled = true;
-
-//     timerInterval = setInterval(() => {
-//         if (timer <= 0) {
-//             clearInterval(timerInterval);
-//             resendButton.disabled = false; // Re-enable resend button
-//             timerDisplay.textContent = "You can now resend the OTP.";
-//             timerDisplay.classList.add("expired"); // Optional styling for expired state
-//         } else {
-//             timerDisplay.textContent = `Please wait ${timer} seconds to resend OTP.`;
-//             timer--;
-//         }
-//     }, 1000);
-// }
-
-// function resendotp() {
-//     // Reset timer and re-enable the OTP input
-//     timer = 60;
-//     document.getElementById("otp").disabled = false;
-//     document.getElementById("timerValue").classList.remove("expired");
-//     startTimer();
-
-//     $.ajax({
-//         type: "POST",
-//         url: "/resend-otp",
-//         success: function (response) {
-//             if (response.success) {
-//                 Swal.fire({
-//                     icon: "success",
-//                     title: "OTP resent successfully",
-//                     showConfirmButton: false,
-//                     timer: 1500,
-//                 });
-//             } else {
-//                 Swal.fire({
-//                     icon: "error",
-//                     title: "Error",
-//                     text: response.message || "Failed to resend OTP. Please try again.",
-//                 });
-//             }
-//         },
-//         error: function () {
-//             Swal.fire({
-//                 icon: "error",
-//                 title: "Error",
-//                 text: "An error occurred. Please try again later.",
-//             });
-//         },
-//     });
-
-//     return false; // Prevent default form submission
-// }
-
 
 </script>
 <%- include("../../views/partials/user/footer") %>

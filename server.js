@@ -1,6 +1,7 @@
 const express= require("express");
 const app= express();
 const session = require('express-session');
+const passport=require('./config/passport')
 const path = require("path");
 const env=require("dotenv").config();
 const db=require("./config/db")
@@ -15,12 +16,16 @@ app.use(session({
     secret:process.env.SESSION_SEACRETP,
     resave:false,
     saveUninitialized:true,
-    cooki:{
+    cookie:{
         secure:false,
         httpOnly:true,
         maxAge:72*60*60*1000
     }
 }))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 
 app.set("view engine","ejs");
