@@ -79,7 +79,7 @@ passport.use(
         async (accessToken, refreshToken, profile, done) => {
             try {
                 let user = await User.findOne({ googleId: profile.id });
-                if (user) {
+                if (user ) {
                     return done(null, user);
                 } else {
                     user = new User({
@@ -99,11 +99,12 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-    if (!user.id) {
+    if (!user.id ) {
         console.error("User ID is undefined during serialization");
         return done(new Error("User ID is missing"));
     }
     done(null, user.id);
+    // console.log(user.name)
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -111,6 +112,8 @@ passport.deserializeUser(async (id, done) => {
         const user = await User.findById(id);
         if (user) {
             done(null, user);
+            // console.log(user.name)
+
         } else {
             done(new Error("User not found"), null);
         }

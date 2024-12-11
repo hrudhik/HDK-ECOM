@@ -37,10 +37,10 @@ const pagenotfound= async(req,res)=>{
 const loadhomepage = async (req, res) => {
     try {
         const userId = req.session.user;
-        console.log('User ID from session:', userId); // Debugging log
+        //console.log('User ID from session:', userId); 
         if (userId) {
             const userData = await User.findById(userId);
-            console.log('Fetched user data:', userData); // Debugging log
+            // console.log('Fetched user data:', userData); 
             res.render("home", { user: userData });
         } else {
             res.render("home");
@@ -147,34 +147,65 @@ const hashpassword=async (password)=>{
         
     }
 }
-const verifyotp= async(req,res)=>{
-    try {
-        const {otp}=req.body;
-        console.log(otp);
+// const verifyotp= async(req,res)=>{
+//     try {
+//         const {otp}=req.body;
+//         console.log(otp);
 
-        if(otp === req.session.userOtp){
-            const user= req.session.userData
-            const hashedpassword = await hashpassword(user.password)
-            const saveUserdata=new User({
-                 name:user.name,
-                 email:user.email,
-                 phone:user.phone,
-                 password:hashedpassword
+//         if(otp === req.session.userOtp){
+//             const user= req.session.userData
+//             const hashedpassword = await hashpassword(user.password)
+//             const saveUserdata=new User({
+//                  name:user.name,
+//                  email:user.email,
+//                  phone:user.phone,
+//                  password:hashedpassword
 
 
-        })
-          await saveUserdata.save();
-          req.session.user= saveUserdata._id;  
-         res.json({success:true,redirectUrl:"/"}); 
+//         })
+//           await saveUserdata.save();
+//           req.session.user= saveUserdata._id;  
+//          res.json({success:true,redirectUrl:"/"}); 
         
-    }else{
-        res.status(400).json({success:false,message:"invalied otp , please try again "})
+//     }else{
+//         res.status(400).json({success:false,message:"invalied otp , please try again "})
+//     }
+// } catch (error) {
+//     console.error("error verifying otp",error); 
+//     res.status(500).json({success:false,message:"an error occured"})
+//     }
+// }
+const verifyotp = async (req, res) => {
+    try {
+        // console.log(req.body)
+        const { otp } = req.body|| null
+        console.log("OTP from user:", otp);
+
+        if (otp === req.session.userOtp) {
+            const user = req.session.userData;
+            const hashedpassword = await hashpassword(user.password);
+            
+            const saveUserdata = new User({
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                password: hashedpassword
+            });
+
+            await saveUserdata.save();
+            req.session.user = saveUserdata._id;
+            res.json({ success: true, redirectUrl: "/" });
+           
+        } else {
+            res.status(400).json({ success: false, message: "Invalid OTP, please try again." });
+        }
+    } catch (error) {
+        console.error("Error verifying OTP:", error);
+        // console.error("OTP from user:", req.body.otp)
+        res.status(500).json({ success: false, message: "An error occurred during OTP verification." });
     }
-} catch (error) {
-    console.error("error verifying otp",error); 
-    res.status(500).json({success:false,message:"an error occured"})
-    }
-}
+};
+
 const resendotp=async(req,res)=>{
     try {
         const {email}= req.session.userData;
@@ -198,6 +229,7 @@ const resendotp=async(req,res)=>{
         res.status(500).json({success:false,message:"internal server erroer"})
     }
 }
+
 
 const loadlogin=async(req,res)=>{
     try {
@@ -232,12 +264,29 @@ const login= async(req,res)=>{
         }
 
         req.session.user=findUser._id;
+        console.log(req.session.user);
+        
         res.redirect('/');
         console.log("user login succesfull")
 
     } catch (error) {
         console.error("login error",error);
         res,render =("login",{message:"login failed. Please try again "})
+        
+    }
+}
+const logout=async(req,res)=>{
+    try {
+        req.session.destroy((err)=>{
+            if(err){
+                console.log("Session destroy error",err.message);
+                return res.redirect('/pagenotfound');
+            }
+            return res.redirect('/login');
+        })
+    } catch (error) {
+        console.error("Log out error",error);
+        res.redirect('/pagenotfound')
         
     }
 }
@@ -251,6 +300,7 @@ module.exports={
     verifyotp,
     resendotp,
     loadlogin,
-    login
+    login,
+    logout
 
 }

@@ -2,12 +2,13 @@ const express=require('express');
 const router=express.Router();
 const passport=require("passport")
 const userController = require('../controllers/userController');
+const {userAuth,adminAuth,isLoggedIn}=require('../middlewares/auth');
  
 
 router.get('/pagenotfound',userController.pagenotfound);
 router.get('/',userController.loadhomepage);
-router.get('/signup',userController.loadsignUp);
-router.post('/signup',userController.signUp);
+router.get('/signup',isLoggedIn,userController.loadsignUp);
+router.post('/signup',isLoggedIn,userController.signUp);
 router.post('/verify-otp',userController.verifyotp)
 router.post('/resend-otp',userController.resendotp)
 
@@ -24,8 +25,9 @@ router.get('/google/callback',
     }
   );
 
-  router.get('/login',userController.loadlogin);
-  router.post('/login',userController.login);
+  router.get('/login',isLoggedIn,userController.loadlogin);
+  router.post('/login',isLoggedIn,userController.login);
+  router.get('/logout',userController.logout)
 
 
 
