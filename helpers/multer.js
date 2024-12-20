@@ -1,38 +1,70 @@
-// const multer=require("multer");
-// const path= require("path");
+const multer=require("multer");
+const path= require("path");
+
+const storage= multer.diskStorage({
+    destination:(req,file,cb)=>{
+        cb(null,path.join(__dirname,"../public/uploads/re-image"));
+
+    },
+    filename: (req,file,cb)=>{
+        cb(null,Date.now()+ "-"+file.originalname);
+    }
+})
+
+const upload = multer({storage})
+
+module.exports={
+    upload
+}
 
 
-// const storage= multer.diskStorage({
-//     destination:(req,file,cb)=>{
-//         cb(null,path.join(__dirname,"../public/uploads/re-image"));
+// // const multer = require("multer");
+// // const path = require("path");
 
-//     },
-//     filename: (req,file,cb)=>{
-//         cb(null,Date.now()+ "-"+file.originalname);
-//     }
-// })
+// // // Storage configuration
+// // const storage = multer.diskStorage({
+// //   destination: (req, file, cb) => {
+// //       const dirPath = path.join(__dirname, "../public/uploads/re-image");
+// //       console.log("Destination Path:", dirPath); // Debug destination path
+// //       cb(null, dirPath);
+// //   },
+// //   filename: (req, file, cb) => {
+// //       const fileName = Date.now() + "-" + file.originalname;
+// //       console.log("File Name:", fileName); // Debug file name
+// //       cb(null, fileName);
+// //   },
+// // });
+// // // Initialize multer instance
+// // const upload = multer({ storage: storage });
+
+// // module.exports = { upload };
 
 
 
-// module.exports={
-//     storage
+// const multer = require("multer");
+// const path = require("path");
+// const fs = require("fs");
+
+// // Ensure upload directory exists
+// const dirPath = path.join(__dirname, "../public/uploads/re-image");
+// if (!fs.existsSync(dirPath)) {
+//     fs.mkdirSync(dirPath, { recursive: true });
 // }
 
+// // Storage configuration
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         console.log("Destination Path:", dirPath); // Debug destination path
+//         cb(null, dirPath);
+//     },
+//     filename: (req, file, cb) => {
+//         const fileName = Date.now() + "-" + file.originalname;
+//         console.log("File Name:", fileName); // Debug file name
+//         cb(null, fileName);
+//     },
+// });
 
-const multer = require("multer");
-const path = require("path");
+// // Initialize multer instance
+// const upload = multer({ storage: storage });
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../public/uploads/re-image"));
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-// Initialize multer instance
-const upload = multer({ storage: storage });
-
-module.exports = { upload };
+// module.exports = { upload };

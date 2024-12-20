@@ -7,10 +7,11 @@ const brandController=require("../controllers/brandController");
 const productController=require('../controllers/productController')
 
 const { userAuth, adminAuth } = require('../middlewares/auth');
+const {upload} = require('../helpers/multer')
 // const { Admin } = require('mongodb');
-const multer= require('multer');
-const storage=require('../helpers/multer');
-const uploads=multer({storage:storage});
+// const multer= require('multer');
+// const storage=require('../helpers/multer');
+// const uploads=multer({storage:storage});
 
 
 
@@ -42,7 +43,7 @@ router.post('/editCategory',adminAuth,catogaryController.updateCategory)
 //BRAND
 
 router.get('/brands',adminAuth,brandController.getbrandPage)
-router.post("/addBrand",adminAuth,uploads.single("image"),brandController.addBrand)
+router.post("/addBrand",adminAuth,upload.single("image"),brandController.addBrand)
 router.get('/blockeBrand',adminAuth,brandController.blockBrand)
 router.get('/unblockeBrand',adminAuth,brandController.unblockBrand)
 router.get('/deletBrand',adminAuth,brandController.deleteBrand)
@@ -51,7 +52,13 @@ router.get('/deletBrand',adminAuth,brandController.deleteBrand)
 //product mandgement 
 
 router.get("/addProducts",adminAuth,productController.addproductpage)
-
+router.post('/addProduct',adminAuth,upload.array("images",4),productController.addProduct)
+router.get('/products',adminAuth,productController.allProduct)
+router.get('/blockProduct',adminAuth,productController.blockProduct)
+router.get('/unblockProduct',adminAuth,productController.unblockProduct)
+router.get('/editProduct',adminAuth,productController.editProduct)
+router.post('/editProduct/:id',adminAuth,upload.array("images",4),productController.updateProduct)
+router.post('/deletImage',adminAuth,productController.deleteoneimage)
 
 
 

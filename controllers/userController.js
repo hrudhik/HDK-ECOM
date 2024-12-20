@@ -1,4 +1,6 @@
 const User = require("../models/userSchema");
+const Category =require('../models/categorySchema');
+const Product=require('../models/productSchema');
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require('bcrypt');
@@ -17,33 +19,28 @@ const pagenotfound = async (req, res) => {
     }
 }
 
-// const loadhomepage= async(req,res)=>{
-//     try {
-//         const user=req.session.user;
-//         if(user){
-//             const userData= await User.findOne({_id:user._id});
-//             res.render("home",{user:userData})
-//         }else{
-//             res.render("home")
-//         }
 
-//     } catch (error) {
-//         console.log("the home page is note loading ");
-//         res.status(500).send("internal server error")
-
-//     }
-// }
 
 const loadhomepage = async (req, res) => {
     try {
         const userId = req.session.user;
-        console.log('User ID from session:', userId);
+        const categoryies= await Category.find({isListed:true});
+        let productData =await Product.find({
+             isBlocked:false,category:{$in:categoryies.map(category=>category._id)},quantity:{$gt:0}
+        })
+
+        productData.sort((a,b)=>new Date(b.createdOn)-new Date(a.createdOn));
+        peoductData=productData.slice(0,4);
+
+
+
+        // console.log('User ID from session:', userId);
         if (userId) {
             const userData = await User.findById(userId);
             // console.log('Fetched user data:', userData); 
-            res.render("home", { user: userData });
+            res.render("home", { user: userData,products:productData });
         } else {
-            res.render("home");
+            res.render("home",{products:productData});
         }
     } catch (error) {
         console.log("the home page is not loading ", error);
@@ -274,7 +271,7 @@ const login = async (req, res) => {
         }
 
         req.session.user = findUser._id;
-        console.log(req.session.user);
+        // console.log(req.session.user);
 
         res.redirect('/');
         console.log("user login succesfull")

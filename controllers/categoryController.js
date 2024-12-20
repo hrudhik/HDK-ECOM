@@ -81,27 +81,58 @@ const categogtyInfo = async (req, res) => {
         res.redirect('/pagenotfound');
     }
 };
+// const addCatogary = async (req, res) => {
+//     const { name, description } = req.body;
+
+//     try {
+//         const existCatogary = await category.findOne({ name });
+//         if (existCatogary) {
+//             return res.status(400).json({ error: "Category already exists" });
+//         }
+
+//         const newCategory = new category({
+//             name,
+//             description,
+//         });
+
+//         await newCategory.save();
+//         return res.json({ message: "Category added successfully." });
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({ error: "Internal server error" });
+//     }
+// };
 const addCatogary = async (req, res) => {
     const { name, description } = req.body;
+    // console.log(name,description)
+
+    // Input validation
+    if (!name || !description) {
+        return res.status(400).json({ status: false, error: "Name and description are required." });
+    }
 
     try {
-        const existCatogary = await category.findOne({ name });
-        if (existCatogary) {
-            return res.status(400).json({ error: "Category already exists" });
+        // Check if the category already exists
+        const existingCategory = await category.findOne({ name: name.trim() });
+        if (existingCategory) {
+            return res.status(400).json({ status: false, error: "Category already exists." });
         }
 
+        // Create and save the new category
         const newCategory = new category({
-            name,
-            description,
+            name: name.trim(), // Trim whitespace
+            description: description.trim(),
         });
 
         await newCategory.save();
-        return res.json({ message: "Category added successfully." });
+
+        return res.redirect('/admin/catogary');
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: "Internal server error" });
+        console.error("Error adding category:", error);
+        return res.status(500).json({ status: false, error: "Internal server error." });
     }
 };
+
 
 const addCategoryOffer= async (req,res)=>{
     try {

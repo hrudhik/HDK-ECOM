@@ -101,7 +101,7 @@
             <form
               method="post"
               action="/admin/addCatogary"
-              onsubmit="return formsubmition(event)"
+            
             >
               <div class="mb-4">
                 <label for="product_name" class="form-label">Name</label>
@@ -227,48 +227,48 @@
   <%- include("../partials/admin/footer.ejs") %>
 
   <script>
-    //  function formsubmition(event){
+     function formsubmition(event){
 
-    //      event.preventDefault();
-    //      if(!validateForm()){
-    //          return
-    //      }
-    //      const name=document.getElementsByClassName("name")[0].value;
-    //      const description=document.getElementById("descriptionId").value;
-    //      fetch('/admin/addCatogary',{
-    //        method:'POST',
-    //        headers:{
-    //          'content-type':"application/json"
-    //        },
-    //        body:JSON.stringify({name,description})
-    //      })
-    //      .then(response=>{
-    //        if(!response.ok){
-    //          return response.json().then(err=>{
-    //            throw new Error(err.error);
-    //          })
-    //        }
-    //        return response.json();
-    //      })
-    //      .then(data=>{
-    //        location.reload();
-    //      })
-    //      .catch(error=>{
-    //        if(error.message === "Category already exist "){
-    //          Swal.fire({
-    //            icon:'error',
-    //            title:'Opps',
-    //            text:'Category already exist'
-    //          })
-    //        }else{
-    //          Swal.fire({
-    //            icon:'error',
-    //            title:'Oops',
-    //            text:"An error occured while adding the category",
-    //          })
-    //        }
-    //      })
-    //  }
+         event.preventDefault();
+         if(!validateForm()){
+             return
+         }
+         const name=document.getElementsByClassName("name")[0].value;
+         const description=document.getElementById("descriptionId").value;
+         fetch('/admin/addCatogary',{
+           method:'POST',
+           headers:{
+             'content-type':"application/json"
+           },
+           body:JSON.stringify({name,description})
+         })
+         .then(response=>{
+           if(!response.ok){
+             return response.json().then(err=>{
+               throw new Error(err.error);
+             })
+           }
+           return response.json();
+         })
+         .then(data=>{
+           location.reload();
+         })
+         .catch(error=>{
+           if(error.message === "Category already exist "){
+             Swal.fire({
+               icon:'error',
+               title:'Opps',
+               text:'Category already exist'
+             })
+           }else{
+             Swal.fire({
+               icon:'error',
+               title:'Oops',
+               text:"An error occured while adding the category",
+             })
+           }
+         })
+     }
 
 
     //  function validateForm(){
@@ -291,50 +291,50 @@
     //      }
     //      return isValid;
     //  }
-    function formsubmition(event) {
-    event.preventDefault();
+//     function formsubmition(event) {
+//     event.preventDefault();
 
-    if (!validateForm()) {
-        return;
-    }
+//     if (!validateForm()) {
+//         return;
+//     }
 
-    const name = document.getElementById("product_name").value.trim();
-    const description = document.getElementById("descriptionId").value.trim();
+//     const name = document.getElementById("product_name").value.trim();
+//     const description = document.getElementById("descriptionId").value.trim();
 
-    fetch('/admin/addCatogary', {
-        method: 'POST',
-        headers: {
-            'content-type': "application/json"
-        },
-        body: JSON.stringify({ name, description })
-    })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            location.reload(); 
-        })
-        .catch(error => {
-            if (error.message === "Category already exist") {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops',
-                    text: 'Category already exists'
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops',
-                    text: "An error occurred while adding the category",
-                });
-            }
-        });
-}
+//     fetch('/admin/addCatogary', {
+//         method: 'POST',
+//         headers: {
+//             'content-type': "application/json"
+//         },
+//         body: JSON.stringify({ name, description })
+//     })
+//         .then(response => {
+//             if (!response.ok) {
+//                 return response.json().then(err => {
+//                     throw new Error(err.error);
+//                 });
+//             }
+//             return response.json();
+//         })
+//         .then(data => {
+//             location.reload(); 
+//         })
+//         .catch(error => {
+//             if (error.message === "Category already exist") {
+//                 Swal.fire({
+//                     icon: 'error',
+//                     title: 'Oops',
+//                     text: 'Category already exists'
+//                 });
+//             } else {
+//                 Swal.fire({
+//                     icon: 'error',
+//                     title: 'Oops',
+//                     text: "An error occurred while adding the category",
+//                 });
+//             }
+//         });
+// }
 
 // function validateForm() {
 //     clearErrorMessage();
@@ -450,80 +450,6 @@ function validateForm(name, description) {
         }
       }
     }
-
-    // async function removeOffer(categoryId) {
-    //   try {
-    //     const response= await fetch('/admin/removeOffer',{
-    //       method:'POST',
-    //       headers:{
-    //         "content-type": "application/json ",
-    //       },
-    //       body:JSON.stringify({
-    //         categoryId:categoryId,
-    //       })
-    //     })
-
-    //     const data= await response.json();
-    //     if(response.ok && data.status=== true){
-    //       Swal.fire(
-    //         "Offetr removed",
-    //         "The Offer has been removed",
-    //         "success"
-    //       ).then(()=>{
-    //         location.reload()
-    //       })
-    //     }else{
-    //       Swal.fire("Failed",data.message || "removing offer failed","error");
-    //     }
-    //   } catch (error) {
-    //     Swal.fire(
-    //       " Error",
-    //       "An error occured adding the offer ",
-    //       "error"
-    //     )
-    //     console.log(error)
-    //   }
-      
-    // }
-
-    async function removeOffer(categoryId) {
-      try {
-        const response = await fetch('/admin/removeOffer', {
-          method: 'POST',
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            categoryId: categoryId,
-          })
-        });
-
-        const data = await response.json();
-        if (response.ok && data.status === true) {
-          Swal.fire(
-            "Offer Removed",
-            "The offer has been successfully removed.",
-            "success"
-          ).then(() => {
-            location.reload(); // Reload the page to reflect changes
-          });
-        } else {
-          Swal.fire(
-            "Failed",
-            data.message || "Failed to remove the offer.",
-            "error"
-          );
-        }
-      } catch (error) {
-        Swal.fire(
-          "Error",
-          "An error occurred while removing the offer.",
-          "error"
-        );
-        console.error("Error in removing offer", error);
-      }
-    }
-
 
 
 

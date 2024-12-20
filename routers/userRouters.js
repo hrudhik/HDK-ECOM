@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require("passport")
 const userController = require('../controllers/userController');
+const userproductController=require('../controllers/userproductController');
 const { userAuth, adminAuth, isLoggedIn } = require('../middlewares/auth');
 
 
@@ -28,6 +29,8 @@ router.get('/google/callback',
 router.get('/login', isLoggedIn, userController.loadlogin);
 router.post('/login', isLoggedIn, userController.login);
 router.get('/logout', userController.logout)
+
+router.get('/productDetails',userAuth,userproductController.productDetails)
 
 
 
