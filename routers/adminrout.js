@@ -58,7 +58,11 @@ router.get('/blockProduct',adminAuth,productController.blockProduct)
 router.get('/unblockProduct',adminAuth,productController.unblockProduct)
 router.get('/editProduct',adminAuth,productController.editProduct)
 router.post('/editProduct/:id',adminAuth,upload.array("images",4),productController.updateProduct)
-router.post('/deletImage',adminAuth,productController.deleteoneimage)
+router.post('/deleteImage',adminAuth,productController.deleteoneimage)
+
+//serch
+router.get('/admin/users', adminController.userserech);
+
 
 
 

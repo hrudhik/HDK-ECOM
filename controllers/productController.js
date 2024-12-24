@@ -332,41 +332,115 @@ const updateProduct = async (req, res) => {
 // const fs = require('fs');
 // const path = require('path');
 // const Product = require('./models/Product'); // Adjust path to your Product model
+// const deleteoneimage = async (req, res) => {
+//     try {
+//         const { imageNameToServer, productIdToServer } = req.body;
+
+//         // Validate request body
+//         if (!imageNameToServer || !productIdToServer) {
+//             return res.status(400).send({ status: false, message: "Invalid data" });
+//         }
+
+//         // Update product in the database
+//         const product = await Product.findByIdAndUpdate(productIdToServer, {
+//             $pull: { productImage: imageNameToServer },
+//         });
+
+//         if (!product) {
+//             return res.status(404).send({ status: false, message: "Product not found" });
+//         }
+
+//         // Build the file path
+//         const imagePath = path.join(__dirname, "public", "uploads", "product-images", imageNameToServer);
+
+//         // Delete the image file
+//         if (fs.existsSync(imagePath)) {
+//             fs.unlinkSync(imagePath); // Synchronous file deletion
+//             console.log(`Image ${imageNameToServer} deleted successfully.`);
+//         } else {
+//             console.log(`Image ${imageNameToServer} not found.`);
+//         }
+
+//         res.send({ status: true });
+//     } catch (error) {
+//         console.error("Error deleting image:", error);
+//         res.status(500).send({ status: false, message: "Internal Server Error" });
+//     }
+// };
+// const fs = require('fs');
+// const path = require('path');
+
+// const deleteoneimage= async (req, res) => {
+//   const {imgname,id}= req.params
+//   console.log(imgname)
+//     console.log('id',id)
+
+//   try {
+//     // Remove the image from the database using $pull
+//     const product = await Product.findByIdAndUpdate(
+//       productId,
+//       { $pull: { images: imageName } },
+//       { new: true } // Return the updated document
+//     );
+
+//     if (!product) {
+//       return res.status(404).json({ message: 'Product not found!', type: 'error' });
+//     }
+
+//     // Delete the image file from the server (if stored locally)
+//     const imagePath = path.join(__dirname, 'public/uploads/', imageName);
+//     if (fs.existsSync(imagePath)) {
+//       fs.unlinkSync(imagePath);
+//     }
+
+//     res.json({ message: 'Image deleted successfully!', type: 'success' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Something went wrong!', type: 'error' });
+//   }
+// };
 const deleteoneimage = async (req, res) => {
     try {
         const { imageNameToServer, productIdToServer } = req.body;
+        console.log(imageNameToServer, productIdToServer)
 
         // Validate request body
         if (!imageNameToServer || !productIdToServer) {
-            return res.status(400).send({ status: false, message: "Invalid data" });
+            return res.status(400).json({ status: false, message: "Invalid data provided" });
         }
 
-        // Update product in the database
+        // Find the product and pull the image name from the productImage array
         const product = await Product.findByIdAndUpdate(productIdToServer, {
             $pull: { productImage: imageNameToServer },
         });
 
         if (!product) {
-            return res.status(404).send({ status: false, message: "Product not found" });
+            return res.status(404).json({ status: false, message: "Product not found" });
         }
 
-        // Build the file path
+        // Build the file path to delete the image file
         const imagePath = path.join(__dirname, "public", "uploads", "product-images", imageNameToServer);
 
-        // Delete the image file
         if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath); // Synchronous file deletion
-            console.log(`Image ${imageNameToServer} deleted successfully.`);
+            fs.unlink(imagePath, (err) => {
+                if (err) {
+                    console.error("Failed to delete file:", err);
+                    return res.status(500).json({ status: false, message: "File deletion failed" });
+                }
+                console.log(`Image ${imageNameToServer} deleted successfully.`);
+            });
         } else {
             console.log(`Image ${imageNameToServer} not found.`);
         }
 
-        res.send({ status: true });
+        res.status(200).json({ status: true, message: "Image deleted successfully" });
     } catch (error) {
         console.error("Error deleting image:", error);
-        res.status(500).send({ status: false, message: "Internal Server Error" });
+        res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
+
+
 
 
 module.exports = {

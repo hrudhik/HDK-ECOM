@@ -124,12 +124,77 @@ const logout= async(req,res)=>{
         res.redirect('/pagenotfound')
     }
 }
+const userserech=async (req, res) => {
+    try {
+        const search = req.query.search || '';
+        const currentPage = parseInt(req.query.page) || 1;
+        const itemsPerPage = 10;
 
+        // Search logic: find users by name or email (you can adjust it)
+        const query = search ? {
+            $or: [
+                { name: { $regex: search, $options: 'i' } },
+                // { email: { $regex: search, $options: 'i' } },
+            ],
+        } : {};
+
+        // Pagination logic
+        const totalCustomers = await User.countDocuments(query);
+        const totalPages = Math.ceil(totalCustomers / itemsPerPage);
+        const customers = await User.find(query)
+            .skip((currentPage - 1) * itemsPerPage)
+            .limit(itemsPerPage);
+
+        res.render('admin/users', {
+            data: customers,
+            totalPages,
+            currentPage,
+            search,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+}
+
+const categoryserch= async (req, res) => {
+    try {
+      const search = req.query.search || ""; // Get the search term
+      const currentPage = parseInt(req.query.page) || 1;
+      const itemsPerPage = 10;
+  
+      // Search query using regex to match category names
+      const query = search
+        ? {
+            name: { $regex: search, $options: "i" }, // 'i' for case-insensitive search
+          }
+        : {};
+  
+      // Pagination logic
+      const totalCategories = await Category.countDocuments(query);
+      const totalPages = Math.ceil(totalCategories / itemsPerPage);
+      const categories = await Category.find(query)
+        .skip((currentPage - 1) * itemsPerPage)
+        .limit(itemsPerPage);
+  
+      res.render("catogary_management", {
+        data: categories,
+        totalPages,
+        currentPage,
+        search,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Server error");
+    }
+  }
 
 module.exports={
     loadlogin,
     login,
     loaddashBoard,
+    userserech,
+    categoryserch,
     pagenotfound,
     logout
 };

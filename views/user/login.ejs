@@ -48,7 +48,7 @@
             <div class="input-group">
                 <input required type="password" name="password" id="login-password" class="form-control" placeholder="Password" style="background-color: white;">
                 <span class="input-group-text" onclick="togglePasswordVisibility('login-password')" style="cursor: pointer;">
-                    <i class="bi bi-eye" id="toggle-icon-login-password"></i>
+                    <i class="bi bi-eye" id="toggle-icon-login-password">👁️</i>
                 </span>
             </div>
         </div> 
@@ -69,7 +69,7 @@
                     <label class="form-check-label" for="exampleCheckbox1"><span>Remember me</span></label>
                 </div> -->
             </div>
-            <a style="color: #3C3633;" href="/forgot">Forgot password?</a>
+            <a style="color: #3C3633;" href="/forgotpassword">Forgot password?</a>
         </div>
         <div class="form-group">
             <button type="submit" class=" btn-custom " name="login">Log in</button>
@@ -123,6 +123,16 @@
             icon.classList.replace('bi-eye-slash', 'bi-eye');
         }
     }
+    
+    
+        // Swal.fire({
+        //     icon: 'error',
+        //     title: 'Blocked!',
+        //     text: 'Your account has been blocked by the admin. Please contact support.',
+        //     confirmButtonText: 'OK'
+        // }).then(() => {
+        //     window.location.href = "/signup"; // Redirect after alert
+        // });
     
 </script>
 

@@ -78,7 +78,7 @@
         <h2 class="content-title card-title">Category</h2>
       </div>
     </div>
-    <header class="card-header text-center mb-20">
+    <!-- <header class="card-header text-center mb-20">
       <form action="/admin/catogary" method="get" class="d-inline">
         <div
           class="input-group input-group-sm border border-1 border-grey rounded-pill"
@@ -93,16 +93,13 @@
           <button class="btn" type="submit">Search</button>
         </div>
       </form>
-    </header>
+    </header> -->
     <div class="card">
       <div class="card-body">
         <div class="row">
           <div class="col-md-3">
-            <form
-              method="post"
-              action="/admin/addCatogary"
-            
-            >
+            <form  id="categoryForm" method="post" action="/admin/addCatogary'">
+
               <div class="mb-4">
                 <label for="product_name" class="form-label">Name</label>
                 <input
@@ -227,136 +224,89 @@
   <%- include("../partials/admin/footer.ejs") %>
 
   <script>
-     function formsubmition(event){
+       const categoryForm = document.getElementById('categoryForm');
 
-         event.preventDefault();
-         if(!validateForm()){
-             return
-         }
-         const name=document.getElementsByClassName("name")[0].value;
-         const description=document.getElementById("descriptionId").value;
-         fetch('/admin/addCatogary',{
-           method:'POST',
-           headers:{
-             'content-type':"application/json"
-           },
-           body:JSON.stringify({name,description})
-         })
-         .then(response=>{
-           if(!response.ok){
-             return response.json().then(err=>{
-               throw new Error(err.error);
-             })
-           }
-           return response.json();
-         })
-         .then(data=>{
-           location.reload();
-         })
-         .catch(error=>{
-           if(error.message === "Category already exist "){
-             Swal.fire({
-               icon:'error',
-               title:'Opps',
-               text:'Category already exist'
-             })
-           }else{
-             Swal.fire({
-               icon:'error',
-               title:'Oops',
-               text:"An error occured while adding the category",
-             })
-           }
-         })
-     }
+categoryForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); // Prevent form from submitting normally
+
+  const formData = new FormData(categoryForm);
+  const data = Object.fromEntries(formData.entries()); // Convert FormData to JSON-like object
 
 
-    //  function validateForm(){
-    //      clearErrorMessage();
-    //      const name=document.getElementById("name")[0].value.trim();
-    //      const description=document.getElementById("descriptionId").value.trim();
-    //      isValid=true;
+    const response = await fetch('/admin/addCatogary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    // Show SweetAlert
+    Swal.fire({
+      icon: 'error', // 'success', 'error', etc.
+      title: result.message,
+      text:'Category already exist'
+    });
+ 
+   
+  
+});
 
 
-    //      if(name===""){
-    //          displayErrorMessage("name-error","Plase enter a name");
-    //          isValid=false;
-    //      }else if(!/^[a-zA-Z\s]+$/.test(name)){
-    //        displayErrorMessage("name-error","Caregory name should contain only alphabetic characters");
-    //        isValid=false;
-    //      }
-    //      if(description===""){
-    //        displayErrorMessage("description-error","Please enter a description")
-    //        isValid=false;
-    //      }
-    //      return isValid;
-    //  }
-//     function formsubmition(event) {
-//     event.preventDefault();
 
-//     if (!validateForm()) {
-//         return;
-//     }
 
-//     const name = document.getElementById("product_name").value.trim();
-//     const description = document.getElementById("descriptionId").value.trim();
 
-//     fetch('/admin/addCatogary', {
-//         method: 'POST',
-//         headers: {
-//             'content-type': "application/json"
-//         },
-//         body: JSON.stringify({ name, description })
+
+
+
+
+//     function formsubmition(event){
+
+// event.preventDefault();
+// if(!validateForm()){
+//     return
+// }
+// const name=document.getElementsByClassName("name")[0].value;
+// const description=document.getElementById("descriptionId").value;
+// fetch('/admin/addCatogary',{
+//   method:'POST',
+//   headers:{
+//     'content-type':"application/json"
+//   },
+//   body:JSON.stringify({name,description})
+// })
+// .then(response=>{
+//   if(!response.ok){
+//     return response.json().then(err=>{
+//       throw new Error(err.error);
 //     })
-//         .then(response => {
-//             if (!response.ok) {
-//                 return response.json().then(err => {
-//                     throw new Error(err.error);
-//                 });
-//             }
-//             return response.json();
-//         })
-//         .then(data => {
-//             location.reload(); 
-//         })
-//         .catch(error => {
-//             if (error.message === "Category already exist") {
-//                 Swal.fire({
-//                     icon: 'error',
-//                     title: 'Oops',
-//                     text: 'Category already exists'
-//                 });
-//             } else {
-//                 Swal.fire({
-//                     icon: 'error',
-//                     title: 'Oops',
-//                     text: "An error occurred while adding the category",
-//                 });
-//             }
-//         });
+//   }
+//   return response.json();
+// })
+// .then(data=>{
+//   location.reload();
+// })
+// .catch(error=>{
+//   if(error.message === "Category already exist "){
+//     Swal.fire({
+//       icon:'error',
+//       title:'Opps',
+//       text:'Category already exist'
+//     })
+//   }else{
+//     Swal.fire({
+//       icon:'error',
+//       title:'Oops',
+//       text:"An error occured while adding the category",
+//     })
+//   }
+// })
 // }
 
-// function validateForm() {
-//     clearErrorMessage();
-//     const name = document.getElementById("product_name").value.trim();
-//     const description = document.getElementById("descriptionId").value.trim();
-//     let isValid = true;
 
-//     if (name === "") {
-//         displayErrorMessage("name-error", "Please enter a name");
-//         isValid = false;
-//     } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-//         displayErrorMessage("name-error", "Category name should contain only alphabetic characters");
-//         isValid = false;
-//     }
 
-//     if (description === "") {
-//         displayErrorMessage("description-error", "Please enter a description");
-//         isValid = false;
-//     }
-
-//     return isValid;
-// }
 
 function validateForm(name, description) {
       let isValid = true;
@@ -404,53 +354,52 @@ function validateForm(name, description) {
     }
 
 
-    async function addOffer(categoryId){
-      const {value:amount}=await Swal.fire({
-        title:"Offer in percentage",
-        inout:"number",
-        inputLabel:"percentage",
-        inputPlaceholder:"5",
-      })
+    // async function addOffer(categoryId){
+    //   const {value:amount}=await Swal.fire({
+    //     title:"Offer in percentage",
+    //     inout:"number",
+    //     inputLabel:"percentage",
+    //     inputPlaceholder:"5",
+    //   })
 
 
-      if(amount){
+    //   if(amount){
 
-        try {
-          const response=await fetch("/admin/addCategoryOffer",{
-            method:"POST",
-            headers:{
-               'content-type ':"application/json",
+    //     try {
+    //       const response=await fetch("/admin/addCategoryOffer",{
+    //         method:"POST",
+    //         headers:{
+    //            'content-type ':"application/json",
                            
-            },
-            body:JSON.stringify({
-              percentage:amount,
-              categoryId:categoryId,
+    //         },
+    //         body:JSON.stringify({
+    //           percentage:amount,
+    //           categoryId:categoryId,
                
-            }),
-          });
-          const data= await response.json();
-          if(response.ok && data.status === true){
-            swal.fire(
-               "Offer added",
-               "The Offer has been added",
-               "success"
-            ).then(()=>{
-              location.reload()
-            })
-          }else{
-            Swal.fire("faild",data.message|| "adding offer failde ", "error");
-          }
-        } catch (error) {
-          Swal.fire(
-            "Error",
-            "An error occured adding the offer ",
-            "error",
-          )
-          console.log("error in adding offer",error )
-        }
-      }
-    }
-
+    //         }),
+    //       });
+    //       const data= await response.json();
+    //       if(response.ok && data.status === true){
+    //         swal.fire(
+    //            "Offer added",
+    //            "The Offer has been added",
+    //            "success"
+    //         ).then(()=>{
+    //           location.reload()
+    //         })
+    //       }else{
+    //         Swal.fire("faild",data.message|| "adding offer failde ", "error");
+    //       }
+    //     } catch (error) {
+    //       Swal.fire(
+    //         "Error",
+    //         "An error occured adding the offer ",
+    //         "error",
+    //       )
+    //       console.log("error in adding offer",error )
+    //     }
+    //   }
+    // }
 
 
 

@@ -299,6 +299,7 @@ const logout = async (req, res) => {
 }
 
 
+
 module.exports = {
     loadhomepage,
     pagenotfound,
@@ -308,6 +309,7 @@ module.exports = {
     resendotp,
     loadlogin,
     login,
-    logout
+    logout,
+        
 
 }

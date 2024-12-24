@@ -102,9 +102,39 @@ const categogtyInfo = async (req, res) => {
 //         res.status(500).json({ error: "Internal server error" });
 //     }
 // };
+// const addCatogary = async (req, res) => {
+//     const { name, description } = req.body;
+//     // console.log(name,description)
+
+//     // Input validation
+//     if (!name || !description) {
+//         return res.status(400).json({ status: false, error: "Name and description are required." });
+//     }
+
+//     try {
+//         // Check if the category already exists
+//         const existingCategory = await category.findOne({ name: name.trim().toLowerCase() && name.trim().toUpperCase() });
+//         if (existingCategory) {
+//             return res.status(400).json({ status: false, error: "Category already exists." });
+//         }
+
+//         // Create and save the new category
+//         const newCategory = new category({
+//             name: name.trim(), // Trim whitespace
+//             description: description.trim(),
+//         });
+
+//         await newCategory.save();
+
+//         return res.redirect('/admin/catogary');
+//     } catch (error) {
+//         console.error("Error adding category:", error);
+//         return res.status(500).json({ status: false, error: "Internal server error." });
+//     }
+// };
+
 const addCatogary = async (req, res) => {
     const { name, description } = req.body;
-    // console.log(name,description)
 
     // Input validation
     if (!name || !description) {
@@ -112,19 +142,27 @@ const addCatogary = async (req, res) => {
     }
 
     try {
-        // Check if the category already exists
-        const existingCategory = await category.findOne({ name: name.trim() });
-        if (existingCategory) {
-            return res.status(400).json({ status: false, error: "Category already exists." });
-        }
+        // Standardize the category name format: First letter capital, rest lowercase
+        const formattedName = name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase();
 
+        // Check if the category already exists
+        const existingCategory = await category.findOne({ name: formattedName });
+        if (existingCategory) {
+            return res.status(400).json({
+                message: 'Category already exists!',
+                type: 'error', 
+              });;
+        }
+        
         // Create and save the new category
         const newCategory = new category({
-            name: name.trim(), // Trim whitespace
+            name: formattedName, // Save the standardized format
             description: description.trim(),
         });
 
         await newCategory.save();
+        // location.reload();
+
 
         return res.redirect('/admin/catogary');
     } catch (error) {
@@ -132,6 +170,9 @@ const addCatogary = async (req, res) => {
         return res.status(500).json({ status: false, error: "Internal server error." });
     }
 };
+
+
+
 
 
 const addCategoryOffer= async (req,res)=>{

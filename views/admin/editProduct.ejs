@@ -128,7 +128,7 @@
                            </div>
                            <div class="card mb-2">
                                <div class="card-header">
-                                   <h4>Choose images</h4>
+                                   <!-- <h4>Choose images</h4>
                                </div>
                                   <% for(let i=0;i<product.productImage.length;i++){%>
                                        <div class="col-md-12">
@@ -139,15 +139,42 @@
                                                        <img class="rounded" style="width: 50px; height: 60px;"
                                                            src="/uploads/product-images/<%=product.productImage[i]%>"
                                                            alt="">
-                                                      <h1> <i onclick="deleteSingleImage('<%=product.productImage[i]%>','<%=product._id%>')" 
-                                                        style="position: absolute; margin-left: .5rem; cursor: pointer; color: black;" class="fa-thin fa-x" ></i></h1>
+                                                      <h1> <a  href="/admin/deletImage">x</a></h1>
                                                    </td>
                                                </div>
                                               
                                            </div>
                                        </div>
-                                       <%}%>
-                              
+                                       <%}%> -->
+                                       <h4>Choose images</h4>
+                                       <% for (let i = 0; i < product.productImage.length; i++) { %>
+                                         <div class="col-md-12" id="image-<%= product.productImage[i] %>">
+                                           <div class="mb-4">
+                                             <div class="col-12">
+                                               <td>
+                                                 <!-- Hidden input for the image name -->
+                                                 <img
+                                                   class="rounded"
+                                                   style="width: 50px; height: 60px;"
+                                                   src="/uploads/product-images/<%= product.productImage[i] %>"
+                                                   alt=""
+                                                 >
+                                                 <!-- Delete icon with onclick -->
+                                                 <i
+                                                   onclick="deleteSingleImage('<%= product.productImage[i] %>', '<%= product._id %>')"
+                                                   style="position: absolute; margin-left: .5rem; cursor: pointer; color: black;"
+                                                   class="fa-thin fa-x"
+                                                 >
+                                                   x
+                                                 </i>
+                                               </td>
+                                             </div>
+                                           </div>
+                                         </div>
+                                       <% } %>
+                                       
+                                       
+                                       
                                   
                                <div class="card-body">
                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
@@ -220,6 +247,58 @@
    </section>
    <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
    <script>
+
+
+                                         function deleteSingleImage(imageName, productId) {
+                                            console.log("ESG    EQRBQERFQETGQERGQEGR")
+                                           // Send the image name and product ID to the backend
+                                           fetch('/admin/deleteImage', {
+                                             method: 'POST', // Use POST for sending data
+                                             headers: {
+                                               'Content-Type': 'application/json', // Specify JSON data format
+                                             },
+                                             body: JSON.stringify({
+                                               imageNameToServer: imageName, // Key for the image name
+                                               productIdToServer: productId, // Key for the product ID
+                                             }),
+                                           })
+                                             .then((response) => response.json())
+                                             .then((data) => {
+                                               if (data.status === true) {
+                                                 // Remove the specific image container from the DOM
+                                                 document.getElementById(`image-${imageName}`).remove();
+                                               } else {
+                                                 alert(data.message); // Display error message
+                                               }
+                                             })
+                                             .catch((err) => {
+                                               console.error('Error:', err);
+                                             });
+                                         }
+                                       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     function validateAndSubmit() {
@@ -400,18 +479,18 @@
            };
 
 
-        function deleteSingleImage(imageId,productId){
-            $.ajax({
-                url:"/admin/deleteImage",
-                method:'post',
-                data:{imageNameToServer:imageId,productIdToServer:productId},
-                success:((response)=>{
-                    if(response.status===true){
-                        window.location.reload();
-                    }
-                })
-            })
-        }
+        // function deleteSingleImage(imageId,productId){
+        //     $.ajax({
+        //         url:"/admin/deleteImage",
+        //         method:'post',
+        //         data:{imageNameToServer:imageId,productIdToServer:productId},
+        //         success:((response)=>{
+        //             if(response.status===true){
+        //                 window.location.reload();
+        //             }
+        //         })
+        //     })
+        // }
 //         function deleteSingleImage(imageId, productId) { 
 //     $.ajax({ 
 //         url: "/admin/deleteImage", 
