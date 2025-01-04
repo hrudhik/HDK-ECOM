@@ -1,0 +1,31 @@
+<h1>Inventory</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% products.forEach(function(product) { %>
+            <tr>
+                <td><%= product.name %></td>
+                <td><%= product.description %></td>
+                <td><%= product.price %></td>
+                <td><%= product.stock %></td>
+                <td>
+                    <a href="/admin/inventory/edit/<%= product._id %>">Edit</a> |
+                    <form action="/admin/inventory/delete/<%= product._id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        <% }); %>
+    </tbody>
+</table>
+
+<a href="/admin/inventory/add" class="btn btn-success">Add New Product</a>

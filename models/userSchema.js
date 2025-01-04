@@ -40,17 +40,17 @@ const userSchema = new Schema({
         type:Boolean,
         default:false
     },
-    cart:[{
+    cart:{
         type:Schema.Types.ObjectId,
         ref:"Cart"
-    }],
+    },
     wallet:[{
         type:Schema.Types.ObjectId,
         ref:"Whislist"
     }],
     orderhistory:[{
         type:Schema.Types.ObjectId,
-        red:"Order"
+        ref:"Order"
     }],
     createdOn:{
         type:Date,

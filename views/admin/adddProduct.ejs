@@ -1,0 +1,29 @@
+<h1>Add New Product</h1>
+
+<form action="/admin/inventory/add" method="POST">
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" name="name" id="name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea name="description" id="description" class="form-control" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input type="number" name="price" id="price" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="category">Category</label>
+        <input type="text" name="category" id="category" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="stock">Stock</label>
+        <input type="number" name="stock" id="stock" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="imageUrl">Image URL</label>
+        <input type="text" name="imageUrl" id="imageUrl" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Add Product</button>
+</form>

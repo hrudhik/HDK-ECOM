@@ -6,7 +6,7 @@ const catogaryController=require("../controllers/categoryController");
 const brandController=require("../controllers/brandController");
 const productController=require('../controllers/productController')
 
-const { userAuth, adminAuth } = require('../middlewares/auth');
+const { userAuth, isAdmin } = require('../middlewares/auth');
 const {upload} = require('../helpers/multer')
 // const { Admin } = require('mongodb');
 // const multer= require('multer');
@@ -18,50 +18,59 @@ const {upload} = require('../helpers/multer')
 
 router.get('/login', adminController.loadlogin);
 router.post('/admin/login', adminController.login)
-router.get('/', adminAuth, adminController.loaddashBoard)
+router.get('/',  adminController.loaddashBoard)
 router.get('/pagenotfound', adminController.pagenotfound)
 router.get('/logout', adminController.logout)
 
 // userlisting rouout
-router.get('/users', adminAuth,customerController.customerInfo)
+router.get('/users', customerController.customerInfo)
 //blocke and unblock user rout 
-router.get('/blockCustomer',adminAuth,customerController.customerblocked)
-router.get('/unblockCustomer',adminAuth,customerController.customerUnblocked)
+router.get('/blockCustomer',customerController.customerblocked)
+router.get('/unblockCustomer',customerController.customerUnblocked)
 
 //catogery management routs
-router.get('/catogary',adminAuth,catogaryController.categogtyInfo)
-router.post('/addCatogary',adminAuth,catogaryController.addCatogary)
+router.get('/catogary',catogaryController.categogtyInfo)
+router.post('/addCatogary',catogaryController.addCatogary)
 
 // router.post('/addCatergoryOffer',adminAuth,catogaryController.addCategoryOffer)
 // router.get('/removeCategoryOffer',adminAuth,catogaryController.removeCategoryOffer)
 
-router.get('/listCategory',adminAuth,catogaryController.getListCategory)
-router.get('/unlistCategory',adminAuth,catogaryController.getUnlistCategory)
-router.get('/editCategory',adminAuth,catogaryController.editCategory)
-router.post('/editCategory',adminAuth,catogaryController.updateCategory)
+router.get('/listCategory',catogaryController.getListCategory)
+router.get('/unlistCategory',catogaryController.getUnlistCategory)
+router.get('/editCategory',catogaryController.editCategory)
+router.post('/editCategory',catogaryController.updateCategory)
 
 //BRAND
 
-router.get('/brands',adminAuth,brandController.getbrandPage)
-router.post("/addBrand",adminAuth,upload.single("image"),brandController.addBrand)
-router.get('/blockeBrand',adminAuth,brandController.blockBrand)
-router.get('/unblockeBrand',adminAuth,brandController.unblockBrand)
-router.get('/deletBrand',adminAuth,brandController.deleteBrand)
+router.get('/brands',brandController.getbrandPage)
+router.post("/addBrand",upload.single("image"),brandController.addBrand)
+router.get('/blockeBrand',brandController.blockBrand)
+router.get('/unblockeBrand',brandController.unblockBrand)
+router.get('/deletBrand',brandController.deleteBrand)
 
 
 //product mandgement 
 
-router.get("/addProducts",adminAuth,productController.addproductpage)
-router.post('/addProduct',adminAuth,upload.array("images",4),productController.addProduct)
-router.get('/products',adminAuth,productController.allProduct)
-router.get('/blockProduct',adminAuth,productController.blockProduct)
-router.get('/unblockProduct',adminAuth,productController.unblockProduct)
-router.get('/editProduct',adminAuth,productController.editProduct)
-router.post('/editProduct/:id',adminAuth,upload.array("images",4),productController.updateProduct)
-router.post('/deleteImage',adminAuth,productController.deleteoneimage)
+router.get("/addProducts",productController.addproductpage)
+router.post('/addProduct',upload.array("images",4),productController.addProduct)
+router.post('/addProduct',upload.array("images",4),productController.addProduct)
+router.get('/products',productController.allProduct)
+router.get('/blockProduct',productController.blockProduct)
+router.get('/unblockProduct',productController.unblockProduct)
+router.get('/editProduct',productController.editProduct)
+router.post('/editProduct/:id',upload.array("images",4),productController.updateProduct)
+router.post('/deleteImage',productController.deleteoneimage)
 
 //serch
 router.get('/admin/users', adminController.userserech);
+
+router.get("/orders",  adminController.getAllOrders);
+router.get("/orders/:orderId",  adminController.getOrderDetails);
+router.post("/orders/:orderId/status",  adminController.updateOrderStatus);
+
+
+
+
 
 
 

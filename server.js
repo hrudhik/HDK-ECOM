@@ -34,17 +34,6 @@ app.use((req, res, next) => {
     res.locals.user = req.user || null; // Make `req.user` available in all templates
     next();
 });
-// app.use((req,res)=>{
-//     if(req.session.user){
-//         next()
-//     }
-//     else{
-//         res.render('login')
-//     }
-// });
-
-
-
 
 
 app.set("view engine", "ejs");

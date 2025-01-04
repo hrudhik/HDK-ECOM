@@ -48,10 +48,10 @@
                             <a aria-label="Quick view" class="action-btn hover-up" href="#/productDetails?id=<%= products[i]._id %>" data-bs-toggle="modal" >
                                 <i class="fi-rs-eye"></i>
                             </a>
-                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/addToWishlist?id=<%= products[i]._id %>">
+                            <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishlist('<%= products[i]._id %>')">
                                 <i class="fi-rs-heart"></i>
                             </a>
-                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html">
+                            <a aria-label="Compare" class="action-btn hover-up" href="#">
                                 <i class="fi-rs-shuffle"></i>
                             </a>
                         </div>
@@ -72,7 +72,7 @@
                             <span class="old-price">₹<%= products[i].regularPrice %></span>
                         </div>
                         <div class="product-action-1 show">
-                            <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html">
+                            <a aria-label="Add To Cart" class="action-btn hover-up" href="addTocart">
                                 <i class="fi-rs-shopping-bag-add"></i>
                             </a>
                         </div>
@@ -186,7 +186,24 @@
             }
         }
         
-    
+       
+async function addToWishlist(productId) {
+    try {
+        const response = await fetch('/addTowishlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId }),
+        });
+
+        const data = await response.json();
+        alert(data.message);
+    } catch (error) {
+        console.error("Error adding to wishlist:", error);
+    }
+}
+
     </script>
 </main>
 

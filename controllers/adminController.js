@@ -1,64 +1,10 @@
-// const User=require("../models/userSchema");
-// const mongoose=require('mongoose');
-// const bcrypt=require('bcrypt');
-
-
-// const loadlogin = async(req,res)=>{
-//     try {
-//         if(req.session.admin){
-//             return res.redirect("/admin/dashboard");
-//         }
-//         res.render('adminlogin')
-        
-//     } catch (error) {
-        
-//     }
-// }
-
-// const login = async(req,res)=>{
-//     try {
-//         const {email,password}=req.body;
-//         const admin= await User.findOne({email,isAdmin:true})
-//         // console.log(admin)
-
-//         if (admin ){
-//             const passwordMatch=bcrypt.compare(password,admin.password)
-//                 if(passwordMatch ){
-
-//                 req.session.admin=true; 
-//                 return res.redirect('/admin')
-//             }else{
-//                 res.redirect('/login')
-//             }
-//         }else{
-//             return res.redirect('/login')
-//         }
-//     } catch (error) {
-//         console.log("login error",error);
-//         return res.redirect('/pagenotfound')
-        
-//     }
-// }
-
-// const loaddashBoard= async (req,res)=>{
-//     if(req.session.admin){
-//         try {
-//             res.render('dashboard');
-//         } catch  {
-//             res.redirect('/pagenotfound');
-            
-//         }
-//     }
-// }
-// const pagenotfound= async (req,res)=>{
-//     res.render('pagenotfound')
-// }
-
 
 
 const User=require("../models/userSchema");
 const mongoose=require('mongoose');
 const bcrypt=require('bcrypt');
+const Order = require("../models/orderSchema");
+const Product = require("../models/productSchema");
 
 
 const loadlogin = async(req,res)=>{
@@ -189,6 +135,140 @@ const categoryserch= async (req, res) => {
     }
   }
 
+  const getAllOrders = async (req, res) => {
+    try {
+        const orders = await Order.find().populate("userId").sort({ createdAt: -1 });  // Sorting by date descending
+        res.render("orders", { orders });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch orders" });
+    }
+};
+
+const getOrderDetails = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const order = await Order.findById(orderId).populate("userId").populate("items.productId");
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+        res.render("orderDetails", { order });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch order details" });
+    }
+};
+
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;  // New status from the form
+
+        if (!["Pending", "Shipped", "Delivered", "Canceled"].includes(status)) {
+            return res.status(400).json({ error: "Invalid status" });
+        }
+
+        const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        res.redirect(`/admin/orders/${orderId}`);  // Redirect to the order details page
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update order status" });
+    }
+};
+
+const getAllProducts = async (req, res) => {
+    try {
+        const products = await Product.find();
+        res.render("inventory", { products });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch products" });
+    }
+};
+const showAddProductForm = (req, res) => {
+    res.render("adddProduct");
+};
+
+const addProduct = async (req, res) => {
+    try {
+        const { name, description, price, category, stock, imageUrl } = req.body;
+        
+        const newProduct = new Product({
+            name,
+            description,
+            price,
+            category,
+            stock,
+            imageUrl,
+        });
+
+        await newProduct.save();
+        res.redirect("/admin/inventory");
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to add product" });
+    }
+};
+
+const showEditProductForm = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+        res.render("edditProduct", { product });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch product for editing" });
+    }
+};
+const editProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { name, description, price, category, stock, imageUrl } = req.body;
+
+        const product = await Product.findByIdAndUpdate(productId, {
+            name,
+            description,
+            price,
+            category,
+            stock,
+            imageUrl,
+        }, { new: true });
+
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        res.redirect("/admin/inventory");
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update product" });
+    }
+};
+const deleteProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findByIdAndDelete(productId);
+
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        res.redirect("/admin/inventory");
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete product" });
+    }
+};
+
+
+
 module.exports={
     loadlogin,
     login,
@@ -196,5 +276,14 @@ module.exports={
     userserech,
     categoryserch,
     pagenotfound,
-    logout
+    logout,
+    getAllOrders,
+    getOrderDetails,
+    updateOrderStatus,
+    getAllProducts,
+    showAddProductForm,
+    addProduct,
+    showEditProductForm,
+    editProduct,
+    deleteProduct,
 };

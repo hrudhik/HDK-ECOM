@@ -3,7 +3,8 @@ const router = express.Router();
 const passport = require("passport")
 const userController = require('../controllers/userController');
 const userproductController=require('../controllers/userproductController');
-const profileController=require("../controllers/profileController")
+const profileController=require("../controllers/profileController");
+const cartControllrer=require('../controllers/cartController')
 const { userAuth, adminAuth, isLoggedIn } = require('../middlewares/auth');
 
 
@@ -51,9 +52,39 @@ router.post('/newpassword',profileController.newpassword);
 router.get('/loadchangepassword',(req,res)=>{
   res.render('cangepassword');
 })
-router.post('/changepassword',profileController.changepassword)
+router.post('/changepassword',profileController.changepassword);
 
-//login and logOut 
+//address management 
+router.get('/addaddress',userAuth,profileController.getassAddress);
+router.post('/addAddress',userAuth,profileController.addAddress)
+router.get('/editAddress',userAuth,profileController.editAddress)
+router.post('/editAddress',userAuth,profileController.postEditAddress)
+router.get('/deleteAddress',userAuth,profileController.deleteAddress)
+
+//shope page
+router.get('/shope',userAuth,userController.loadshopePage);
+router.get('/filterPrice',userAuth,userController.filterbyprice)
+router.get('/getFilteredProducts',userAuth,userController.getFilteredProducts)
+
+//cart
+router.get('/cart',userAuth,cartControllrer.cart)
+router.post('/addTocart',userAuth,cartControllrer.addToCart);
+router.post("/updateQuantity/:productId",cartControllrer.updateCartQuantity);
+router.get("/remove/:productId",cartControllrer.removeProductFromCart);
+router.get('/wishlist',userAuth,cartControllrer.loadwhishlist);
+router.post('/addTowishlist',userAuth,cartControllrer.addToWishlist)
+router.post('/wishlist/remove', userAuth,cartControllrer.removeFromWishlist);
+router.get("/getcheckout",userAuth, cartControllrer.getcheckout)
+router.post("/checkout/process" , userAuth,cartControllrer.placeOrder);
+router.post('/orders/:orderId/product/:productId/cancel',userAuth,cartControllrer.cancelOrder);
+
+
+// router.get('/order-confirmation', userAuth, cartControllrer.getOrderConfirmation);
+
+
+
+
+//login and logOut b 
 router.get('/login', isLoggedIn, userController.loadlogin);
 router.post('/login', isLoggedIn, userController.login);
 router.get('/logout', userController.logout)

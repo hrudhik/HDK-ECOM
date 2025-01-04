@@ -2,6 +2,7 @@ const User = require("../models/userSchema");
 const Category =require('../models/categorySchema');
 const Product=require('../models/productSchema');
 const Address= require('../models/addressSchema');
+const Order= require("../models/orderSchema")
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require('bcrypt');
@@ -13,9 +14,15 @@ const userProfile=async (req,res)=>{
     try {
         const userId=req.session.user;
         const userDate=await User.findById(userId);
+        const addresData=await Address.findOne({userId:userId});
+        const orderDetails= await Order.find({userId}).populate("items.productId")
+       
+        console.log(orderDetails)
 
         res.render('userProfile',{
-            user:userDate
+            user:userDate,
+            userAddress:addresData,
+            orderDetails:orderDetails
         })
 
     } catch (error) {
@@ -219,32 +226,25 @@ const newpassword= async (req,res)=>{
 const changepassword = async (req, res) => {
     try {
         const userId = req.session.user;
-
-        // Check if userId exists
         if (!userId) {
             return res.status(400).json({ success: false, message: "User session not found" });
         }
 
         const { currentPassword, newPassword } = req.body;
 
-        // Fetch user from the database
+        
         const user = await User.findById(userId);
-
-        // Handle case where user is not found
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-
-        // Check if the current password is correct
+       
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Current password is incorrect" });
         }
 
-        // Hash the new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update the user's password
         user.password = hashedPassword;
         await user.save();
 
@@ -255,6 +255,129 @@ const changepassword = async (req, res) => {
     }
 };
 
+const getassAddress= async (req,res)=>{
+    try {
+        const user= req.session.user;
+        res.render('addaddress');
+
+        
+    } catch (error) {
+        res.redirect('/pagenotfound')
+    }
+}
+
+const addAddress=async (req,res)=>{
+    try {
+        const userId= req.session.user;
+        const userDate=await User.findOne({_id:userId});
+        const {addresType,name,city,landMark,state,pincode,phone,altPhone}=req.body;
+
+        const userAddress= await Address.findOne({userId:userDate._id});
+        if(!userAddress){
+            const newAddress= new Address({
+                userId: userDate._id,
+                address:[{addresType,name,city,landMark,pincode,state,phone,altPhone}]
+            })
+            await newAddress.save()
+        }else{
+            userAddress.address.push({addresType,name,city,landMark,pincode,state,phone,altPhone});
+            await userAddress.save(); 
+        }
+        res.redirect('/userprofile')
+        } catch (error) {
+        console.log("address adding failed:",error);
+        res.redirect('/pagenotfound');
+    }
+}
+
+
+const editAddress= async (req,res)=>{
+    try {
+        const addressId= req.query.id;
+        const user = req.session.user;
+        const currentAddress= await Address.findOne({
+            "address._id":addressId
+        });
+
+        if(!currentAddress){
+            res.redirect('/pagenotfound')
+        }
+        const addressData= currentAddress.address.find((item)=>{
+            return item._id.toString()===addressId.toString()
+        })
+
+        if(!addressData){
+            return res.redirect('/pagenotfound')
+        }
+
+        res.render('editAddress',{
+            address:addressData,
+            user:user
+        })
+        
+    } catch (error) {
+        console.error("error in address editing ", error)
+        res.redirect('/pagenotfound')
+        
+    }
+}
+const postEditAddress=async (req,res)=>{
+    try {
+        const data= req.body;
+        const addressId=req.query.id;
+        const user= req.session.user;
+        const findAddress= await Address.findOne({  "address._id":addressId})
+        if(!findAddress){
+            res.redirect("/pagenotfound")
+        }
+        await Address.updateOne({
+            "address._id":addressId
+        },{$set:{"address.$":{
+            _id:data.addressId,
+            addresType:data.addresType,
+            name:data.name,
+            city:data.city,
+            landMark:data.landMark,
+            state:data.state,
+            pincode:data.pincode,
+            phone:data.phone,
+            altPhone:data.altPhone
+
+        }} });
+        res.redirect('/userprofile')
+
+    } catch (error) {
+        console.error(error)
+        res.redirect('/pagenotfound')
+        
+    }
+}
+
+const deleteAddress= async(req,res)=>{
+    try {
+        const addressId=req.query.id;
+        const findAddress= await Address.findOne({  "address._id":addressId})
+        console.log(addressId)
+
+        if(!findAddress){
+           return res.status(500).send("Address not found ")
+        }
+
+        await Address.updateOne({'address._id':addressId},{$pull:{
+            address:{
+                _id:addressId
+            }
+        }})
+
+        res.redirect('/userprofile')
+    } catch (error) {
+        console.error('address deleteing error ',error);
+        res.redirect('/pagenotfound');
+    }
+
+}
+
+
 
 module.exports={
     userProfile,
@@ -264,5 +387,10 @@ module.exports={
     resendfpdotp,
     loadresetpassword,
     newpassword,
-    changepassword
+    changepassword,
+    getassAddress,
+    addAddress,
+    editAddress,
+    postEditAddress,
+    deleteAddress
 }
