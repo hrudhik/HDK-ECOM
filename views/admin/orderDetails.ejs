@@ -43,9 +43,9 @@
             <!-- Shipping Address -->
             <h3 class="h5 mt-4">Shipping Address</h3>
             <p class="mb-1"><strong>Name:</strong> <%= order.shippingAddress.name %></p>
-            <p class="mb-1"><strong>Address:</strong> <%= order.shippingAddress.address %>, <%= order.shippingAddress.city %></p>
-            <p><strong>Zip Code:</strong> <%= order.shippingAddress.zipCode %></p>
-
+            <p class="mb-1"><strong>city:</strong>  <%= order.shippingAddress.city %></p>
+            <p><strong>PinCode:</strong> <%= order.shippingAddress?.pincode %></p>
+            <p><strong>Phone:</strong><%= order.shippingAddress.phone %></p>
             <!-- Total Amount -->
             <h3 class="h5 mt-4">Total Amount: <span class="text-success">&#8377;<%= order.totalAmount %></span></h3>
 

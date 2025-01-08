@@ -152,20 +152,24 @@
                     <td class="text-start"><%=category.name%></td>
                     <td class="text-start"><%=category.description%></td>
                     <td>
-                      <%if(category.categoryOffer){%>
-                        <%=category.categoryOffer%>
+                      <%if(category.categoryOffres){%>
+                        <%=category.categoryOffres%>%
                         <%}else{%>
                           0%
                           <%}%>
                     </td>
                     <td class="text-start">
-                      <%if(category.categoryOffer===0){%>
+                      <%if(category.categoryOffres===0){%>
                       <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white"  onclick="addOffer('<%=category._id%>')">Add Offer</a>
+                        <a href="/admin/getCategoryoffer" class="text-white" >Add Offer</a>
                       </button> 
                       <%}else{%>
-                      <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white"  onclick="removeOffer('<%=category._id%>')">Remove</a>
+                        <button
+                        class="btn btn-info"
+                        style="width: 100px"
+                        onclick="removeCategoryOffer('<%= category._id %>')"
+                      >
+                        Remove
                       </button>
                      <%}%>
                     
@@ -304,6 +308,44 @@ categoryForm.addEventListener('submit', async (event) => {
 //   }
 // })
 // }
+// Make an API call to remove the category offer
+async function removeCategoryOffer(categoryId) {
+  try {
+    const response = await fetch('/admin/removeCategoryOffer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ categoryId }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Show success alert
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: result.message,
+      });
+    } else {
+      // Show error alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.message,
+      });
+    }
+  } catch (error) {
+    // Show generic error alert
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: 'Something went wrong! Please try again later.',
+    });
+    console.error('Error:', error);
+  }
+}
 
 
 

@@ -31,9 +31,12 @@ router.get('/unblockCustomer',customerController.customerUnblocked)
 //catogery management routs
 router.get('/catogary',catogaryController.categogtyInfo)
 router.post('/addCatogary',catogaryController.addCatogary)
+router.get('/getCategoryoffer',catogaryController.getCategoryoffer)
+router.post('/addCategoryOffer',catogaryController.addCategoryOffer);
 
 // router.post('/addCatergoryOffer',adminAuth,catogaryController.addCategoryOffer)
-// router.get('/removeCategoryOffer',adminAuth,catogaryController.removeCategoryOffer)
+// router.get('/removeCategoryOffer',catogaryController.removeCategoryOffer)
+router.post('/removeCategoryOffer',catogaryController.removeCategoryOffer);
 
 router.get('/listCategory',catogaryController.getListCategory)
 router.get('/unlistCategory',catogaryController.getUnlistCategory)
@@ -60,6 +63,8 @@ router.get('/unblockProduct',productController.unblockProduct)
 router.get('/editProduct',productController.editProduct)
 router.post('/editProduct/:id',upload.array("images",4),productController.updateProduct)
 router.post('/deleteImage',productController.deleteoneimage)
+router.get('/productOffer',productController.getproductOffer)
+router.post('/product-offer',productController.addproductoffer)
 
 //serch
 router.get('/admin/users', adminController.userserech);
@@ -68,6 +73,10 @@ router.get("/orders",  adminController.getAllOrders);
 router.get("/orders/:orderId",  adminController.getOrderDetails);
 router.post("/orders/:orderId/status",  adminController.updateOrderStatus);
 
+//coupen 
+router.get('/listcoupen',adminController.listCoupons)
+router.post('/coupons/create',upload.single("couponImage"),adminController.createCoupons)
+router.post('/deleteCoupons/:id',adminController.deletCoupens)
 
 
 

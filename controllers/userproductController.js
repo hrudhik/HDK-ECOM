@@ -36,8 +36,11 @@ const productDetails = async (req, res) => {
         const { id: productId } = req.query;
 
         const product = await Product.findById(productId).populate('category');
+        console.log(product,"product")
 
         const findCategory = product.category;
+        console.log(findCategory,'category');
+        
         const categoryOffer = findCategory?.categoryOffer || 0;
         const productOffer = product.productOffer || 0;
 

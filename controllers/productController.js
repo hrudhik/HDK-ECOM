@@ -88,7 +88,7 @@ const addProduct = async (req, res) => {
 const allProduct = async (req, res) => {
     try {
         const search = req.query.search || "";
-        const page = req.query.page || 1;
+        const page = parseInt(req.query.page) || 1;
         const limit = 4;
 
         const productData = await Product.find({
@@ -110,13 +110,17 @@ const allProduct = async (req, res) => {
         }).countDocuments();
 
         const categories = await Category.find({ isListed: true });
+        console.log(categories,"rdyjfuyf")
         const brands = await Brand.find({ isBlocked: true });
+
+        const totalPages = Math.ceil(count / limit);
 
         if (categories && brands) {
             res.render("product", {
                 data: productData,
                 currentPage: page,
-                totalPage: Math.ceil(count / limit),
+                totalPages: totalPages,
+                search,
                 cat: categories,
                 brand: brands,
             });
@@ -128,6 +132,7 @@ const allProduct = async (req, res) => {
         res.redirect("/pagenotfound");
     }
 };
+
 
 // const allProduct = async function (req, res) {
 //     const page = parseInt(req.query.page) || 1;
@@ -440,7 +445,51 @@ const deleteoneimage = async (req, res) => {
     }
 };
 
+const getproductOffer= async(req,res)=>{
+    try {
+        const products=await Product.find();
+        res.render('addProductoffer',{products})
+    } catch (error) {
+        console.log(error)
+        res.redirect('/admin/pagenotfound')
+        
+    }
+}
 
+const addproductoffer= async(req,res)=>{
+    try {
+        const {productId,offerPercentage}=req.body;
+        // const newProduct=await Product.find({isBlocked:false});
+  
+
+        if(offerPercentage<0|| offerPercentage>100){
+            res.status(500).send("the offer price mustbeen 0-100")
+        }
+
+        const product = await Product.findById(productId);
+        const categoryid=product.category;
+        // console.log(category)
+        if(!product){
+            res.status(500).send("product not find");
+        }
+
+        const categoryoff= await Category.findById(categoryid);
+        const discountPrice= product.regularPrice-(product.regularPrice*offerPercentage)/100 ||0;
+        const categorydiscount= product.regularPrice-(product.regularPrice*categoryoff.categoryOffres)/100 ||0;
+        // console.log(categorydiscount)
+
+        const finalPrice=Math.max(discountPrice,categorydiscount)
+        product.productOffer=offerPercentage;
+        product.salePrice= Math.round(finalPrice);
+        await product.save();
+
+        res.redirect('/admin/products')
+        } catch (error) {
+            console.log(error);
+            res.redirect('/admin/pagenotfound');
+        
+    }
+}
 
 
 module.exports = {
@@ -452,4 +501,6 @@ module.exports = {
     editProduct,
     updateProduct,
     deleteoneimage,
+    getproductOffer,
+    addproductoffer
 };

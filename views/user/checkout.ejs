@@ -147,11 +147,6 @@
     </section>
 </main>
 
-<h1>Checkout</h1>
-
-<form action="" method="">
-    <button type="submit">Place Order</button>
-</form>
 
 
 
@@ -169,11 +164,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const placeOrderButton = document.querySelector(".btn-fill-out");
   const addressSelect = document.getElementById("addressSelect");
   const paymentRadios = document.getElementsByName("paymentMethod"); // Now consistently named payment method radios
-  const cartItems = JSON.parse('<%- JSON.stringify(cart.items) %>'); // Safely pass cart items to JS
-  const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>'; // Calculate total amount on server side and pass it directly
 
-  placeOrderButton.addEventListener("click", async (event) => {
+  const cartItems = JSON.parse(<%- JSON.stringify(cartItems) %>); // Safely pass cart items to JS
+  
+  const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>'; // Calculate total amount on server side and pass it directly
+console.log(cartItems)
+  placeOrderButton.addEventListener ("click", async (event) => {
     event.preventDefault();
+
+    console.log("clicked")
 
     // Get selected address
     const selectedAddressId = addressSelect.value;
@@ -193,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Prepare order data
     const orderData = {
-      addressId: '<%= address.address._id %>',
+      addressId: selectedAddressId,
       items: cartItems.map(item => ({
         productId: item.productId._id,
         quantity: item.quantity,

@@ -1,0 +1,168 @@
+<%- include("../partials/admin/header.ejs") %>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #004cff;
+            margin: 20px 0;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        /* Form Styles */
+        form {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+
+        form label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        form input {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form button {
+            background-color: #004cff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        form button:hover {
+            background-color: #0037ff;
+        }
+
+        /* Table Styles */
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #004cff;
+            color: white;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table td form button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        table td form button:hover {
+            background-color: #c0392b;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            form {
+                width: 90%;
+            }
+
+            table {
+                width: 100%;
+                font-size: 14px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+        }
+    </style>
+
+
+    <h1>Coupons Management</h1>
+
+    <!-- Form to create a new coupon -->
+    <form action="/admin/coupons/create" method="POST" enctype="multipart/form-data">
+        <h3>Create New Coupon</h3>
+        <label for="code">Coupon Code:</label>
+        <input type="text" name="code" required />
+        <label for="discountPercentage">Discount Percentage:</label>
+        <input type="number" name="discountPercentage" required />
+        <label for="startDate">Start Date:</label>
+        <input type="date" name="startDate" required />
+        <label for="endDate">End Date:</label>
+        <input type="date" name="endDate" required />
+        
+            <label for="couponImage">Coupon Image:</label>
+            <input type="file" id="couponImage" name="couponImage" accept="image/*" required>
+        
+        <button type="submit">Create Coupon</button>
+    </form>
+
+    <hr />
+
+    <!-- List of all coupons -->
+    <h3 style="text-align: center;">All Coupons</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Discount (%)</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% coupons.forEach(coupon => { %>
+            <tr>
+                <td><%= coupon.code %></td>
+                <td><%= coupon.discountPercentage %>%</td>
+                <td><%= coupon.startDate.toDateString() %></td>
+                <td><%= coupon.endDate.toDateString() %></td>
+                <td><img src="/uploads/re-image/<%=coupon.couponImage%>" alt="offer coupon"></td>
+                <td>
+                    <form action="/admin/deleteCoupons/<%= coupon._id %>" method="POST">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <%- include("../partials/admin/footer.ejs") %>

@@ -34,12 +34,20 @@
                             <td><%= item.productId.productName %></td>
                             <!-- Quantity Update -->
                             <td>
-                                <form method="POST" action="/updateQuantity/<%=item.productId._id %>" class="d-inline">
-                                    <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-secondary">-</button>
-                                    <span class="mx-2"><%= item.quantity %></span>
-                                    <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-secondary">+</button>
-                                </form>
+                                <button 
+                                    data-id="<%= item.productId._id %>" 
+                                    data-action="decrease" 
+                                    class="btn btn-sm btn-outline-secondary update-quantity">-
+                                </button>
+                                <span id="quantity-<%= item.productId._id %>"><%= item.quantity %></span>
+                                <button 
+                                    data-id="<%= item.productId._id %>" 
+                                    data-action="increase" 
+                                    class="btn btn-sm btn-outline-secondary update-quantity">+
+                                </button>
                             </td>
+                            
+                            
                             <!-- Price -->
                             <td>₹<%= item.productId.salePrice %></td>
                             <!-- Total -->
@@ -99,3 +107,38 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
 <%- include("../partials/user/footer.ejs") %>
+<script>
+    document.querySelectorAll('.update-quantity').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const productId = event.target.getAttribute('data-id');
+            const action = event.target.getAttribute('data-action');
+            
+            try {
+                // Send an AJAX request to the server
+                const response = await fetch(`/updateQuantity/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Update the quantity in the UI
+                    document.getElementById(`quantity-${productId}`).textContent = data.newQuantity;
+
+                    // Update the cart total
+                    document.querySelector('.cart_total_amount strong span').textContent = `₹ ${data.cartTotal}`;
+                } else {
+                    console.error('Failed to update quantity');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+
+

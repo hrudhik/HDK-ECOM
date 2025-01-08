@@ -7,7 +7,8 @@ const env = require("dotenv").config();
 const db = require("./config/db")
 const userRouters = require("./routers/userRouters");
 const adminrouters = require("./routers/adminrout")
-const nocache = require('nocache')
+const nocache = require('nocache');
+const MongoDBStore = require("connect-mongodb-session")(session);
 db()
 
 
@@ -15,14 +16,24 @@ db()
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(nocache());
+
+const store = new MongoDBStore({
+    uri:process.env.MONGODB_URI,
+})
+
+store.on('error',(error)=>{
+    console.log('Error connecting to mongostore')
+})
+
 app.use(session({
     secret: process.env.SESSION_SEACRET,
     // secret:'mySecret',
+    store,
     resave: false,
     saveUninitialized: true,
     cookie: {
         secure: false,
-        httpOnly: true,
+        httpOnly: true, 
         maxAge: 72 * 60 * 60 * 1000
     }
 

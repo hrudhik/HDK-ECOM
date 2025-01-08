@@ -186,7 +186,7 @@
                                     <div class="product-detail-rating">
                                         <div class="pro-details-brand">
                                             <span> Category: <a href="shop-grid-right.html">
-                                                    <%=category.name%>
+                                                <%=product.category.name%>
                                                 </a></span>
                                         </div>
                                         <div class="product-rate-cover text-end">
@@ -197,6 +197,7 @@
                                             <span class="font-small ml-5 text-muted"> (25 reviews)</span>
                                         </div>
                                     </div>
+                                    
                                     <div class="clearfix product-price-cover">
                                         <div class="product-price primary-color float-left">
                                             <ins><span class="text-brand">
@@ -217,7 +218,7 @@
                                     <div class="bt-1 border-color-1 mt-15 mb-15"></div>
                                     <div class="short-desc mb-30">
                                         <p>
-                                            <%=product.description%>>
+                                            <%=product.description%>
                                         </p>
                                     </div>
                                     <div class="product_sort_info font-xs mb-30">
@@ -234,6 +235,7 @@
                                         <strong class="mr-10">Highlights</strong>
                                         <ul class="list-filter material-filter font-small">
                                             <li><a href="#"> Color:<%=product.color%></a></li>
+                                            <!-- <li>.<%=product.productOffer%>%</li> -->
                                             <!-- <li><a href="#">Canvas</a></li>
                                             <li><a href="#">Alluminium</a></li> -->
                                         </ul>

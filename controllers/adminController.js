@@ -5,6 +5,7 @@ const mongoose=require('mongoose');
 const bcrypt=require('bcrypt');
 const Order = require("../models/orderSchema");
 const Product = require("../models/productSchema");
+const Coupon= require("../models/coupenSchema");
 
 
 const loadlogin = async(req,res)=>{
@@ -267,6 +268,67 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+const listCoupons = async(req,res)=>{
+    try {
+        const coupons = await Coupon.find({}).sort({ createdAt: -1 });
+        res.render('coupens',{coupons})
+    } catch (error) {
+        console.log(error);
+        res.status(500).redirect('/addmin/pagenotfound')
+    }
+}
+
+const createCoupons=async(req,res)=>{
+    try {
+        const {code,discountPercentage,startDate,endDate}=req.body;
+        if(new Date(startDate)>=new Date(endDate)){
+            res.status(500).send("Start date must be before the end date.")
+
+        }
+
+        const { filename } = req.file;
+        // const image= `/uploads/re-image/${filename}`;
+
+        // if(req.file){
+        //     // let path=req.filename
+        //     image=`/public/uploads/re-image/${req.filename}`;
+        // }
+        console.log(filename)
+        const newcoupon=  new Coupon({code,discountPercentage,startDate,endDate,couponImage:filename});
+        await newcoupon.save();
+
+        res.redirect("/admin/listcoupen");
+
+    } catch (error) {
+        console.log(error);
+        
+        res.status(500).redirect('/admin/pagenotfound');
+        
+    }
+}
+
+// const deletCoupens=async(req,res)=>{
+//     try {
+//         const {couponId}=req.params;
+//         await Coupon.findByIdAndDelete(couponId);
+//         res.redirect('/admin/listcoupen')
+
+//     } catch (error) {
+//      console.log(error);
+//      res.status(500).redirect('/admin/pagenotfound')
+        
+//     }
+// }
+const deletCoupens = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Coupon.findByIdAndDelete(id);
+        res.redirect("/admin/listcoupen");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting coupon.");
+    }
+};
 
 
 module.exports={
@@ -286,4 +348,7 @@ module.exports={
     showEditProductForm,
     editProduct,
     deleteProduct,
+    listCoupons,
+    createCoupons,
+    deletCoupens
 };

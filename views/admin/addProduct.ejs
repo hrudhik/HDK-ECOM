@@ -114,76 +114,139 @@
                             </div>
                             <div class="card mb-2">
                                 <div class="card-header">
-                                    <h4>Choose images</h4>
+                                  <h4>Choose Images</h4>
                                 </div>
-                                <div class="border row">
-                                    <div id="addedImagesContainer" class="thumbnails-container"></div>
+                
+                                <div class="border row p-3">
+                                  <!-- Added Images Container -->
+                                  <div id="addedImagesContainer" class="thumbnails-container"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                        <img src="" alt="" id="imgView1">
-                                        <input class="form-control" type="file" name="images" id="input1"
-                                            accept="image/png, image/jpeg, image/jpg"
-                                            onchange="viewImage1(event), viewImage(event, 1)">
-                                        <div id="images-error" class="error-message"></div>
+                
+                                <div class="row p-3">
+                                  <!-- Input Field -->
+                                  <div class="col-12 mb-3">
+                                    <label for="input1" class="form-label">Upload Image</label>
+                                    <input class="form-control" type="file" name="images" id="input1"
+                                      accept="image/png, image/jpeg, image/jpg" onchange="viewImage(event, 1)">
+                                    <div id="images-error" class="error-message text-danger mt-2"></div>
+                                  </div>
+                
+                                  <!-- Image Previews: Original and Cropped -->
+                                  <div class="col-12 d-flex justify-content-start align-items-start mb-3">
+                                    <!-- Original Image Preview -->
+                                    <div class="border rounded bg-light d-flex justify-content-center align-items-center me-3"
+                                      style="width: 300px; height: 300px; overflow: hidden;">
+                                      <img src="" alt="Preview Image" id="imgView1" class="img-fluid" style="object-fit: contain;">
                                     </div>
-                                    <div class="image-cropper d-flex align-items-center"
-                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                        <img src="" id="croppedImg1" alt="">
-                                        <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>
+                
+                                    <!-- Cropped Image -->
+                                    <div class="image-cropper border rounded bg-light d-flex justify-content-center align-items-center"
+                                      style="display: none; width: 300px; height: 300px; overflow: hidden;">
+                                      <img src="" id="croppedImg1" alt="Cropped Image" class="img-fluid" style="object-fit: contain;">
                                     </div>
+                                  </div>
+                
+                                  <!-- Save Button -->
+                                  <div class="col-12">
+                                    <button type="button" id="saveButton1" class="btn btn-primary btn-sm">
+                                      Save
+                                    </button>
+                                  </div>
                                 </div>
-
-                                <div class="row">
-                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                        <img src="" alt="" id="imgView2">
-
-
-                                        <input class="form-control" type="file" name="images" id="input2"
-                                            accept="image/png, image/jpeg, image/jpg"
-                                            onchange="viewImage2(event),viewImage(event, 2)">
-                                    </div>
-                                    <div class="image-cropper d-flex align-items-center"
-                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                        <img src="" id="croppedImg2" alt="">
-                                        <button type="button" id="saveButton2" class="btn-sm btn-primary">Save</button>
-                                    </div>
+                              </div>
+                
+                              <div class="row">
+                                <!-- Input Field -->
+                                <div class="col-12 mb-3">
+                                  <input class="form-control" type="file" name="images" id="input2"
+                                    accept="image/png, image/jpeg, image/jpg" onchange="viewImage2(event), viewImage(event, 2)">
                                 </div>
-
-                                <div class="row">
-                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                        <img src="" alt="" id="imgView3">
-
-
-                                        <input class="form-control" type="file" name="images" id="input3"
-                                            accept="image/png, image/jpeg, image/jpg"
-                                            onchange="viewImage3(event),viewImage(event, 3)">
-                                    </div>
-                                    <div class="image-cropper d-flex align-items-center"
-                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                        <img src="" id="croppedImg3" alt="">
-                                        <button type="button" id="saveButton3" class="btn-sm btn-primary">Save</button>
-                                    </div>
+                
+                                <!-- Image Previews: Original and Cropped -->
+                                <div class="col-12 d-flex justify-content-start align-items-start mb-3">
+                                  <!-- Original Image Preview -->
+                                  <div class="border rounded bg-light d-flex justify-content-center align-items-center me-3"
+                                    style="width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" alt="Preview Image" id="imgView2" class="img-fluid" style="object-fit: contain;">
+                                  </div>
+                
+                                  <!-- Cropped Image -->
+                                  <div class="image-cropper border rounded bg-light d-flex justify-content-center align-items-center"
+                                    style="display: none; width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" id="croppedImg2" alt="Cropped Image" class="img-fluid" style="object-fit: contain;">
+                                  </div>
                                 </div>
-
-                                <div class="row">
-                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                        <img src="" alt="" id="imgView4">
-
-
-
-                                        <input class="form-control" type="file" name="images" id="input4"
-                                            accept="image/png, image/jpeg, image/jpg"
-                                            onchange="viewImage4(event),viewImage(event, 4)">
-                                    </div>
-                                    <div class="image-cropper d-flex align-items-center"
-                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                        <img src="" id="croppedImg4" alt="">
-                                        <button type="button" id="saveButton4" class="btn-sm btn-primary">Save</button>
-                                    </div>
+                
+                                <!-- Save Button -->
+                                <div class="col-12">
+                                  <button type="button" id="saveButton2" class="btn btn-primary btn-sm">
+                                    Save
+                                  </button>
                                 </div>
-
-                            </div>
+                              </div>
+                
+                              <div class="row">
+                                <!-- Input Field -->
+                                <div class="card-body">
+                                  <input class="form-control mb-3" type="file" name="images" id="input3"
+                                    accept="image/png, image/jpeg, image/jpg" onchange="viewImage3(event), viewImage(event, 3)">
+                                </div>
+                
+                                <!-- Preview and Cropped Image in One Row -->
+                                <div class="card-body d-flex justify-content-start align-items-center">
+                                  <!-- Original Image Preview -->
+                                  <div class="border rounded bg-light d-flex justify-content-center align-items-center me-3"
+                                    style="width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" alt="Preview Image" id="imgView3" class="img-fluid" style="object-fit: contain;">
+                                  </div>
+                
+                                  <!-- Cropped Image -->
+                                  <div class="image-cropper border rounded bg-light d-flex justify-content-center align-items-center"
+                                    style="display: none; width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" id="croppedImg3" alt="Cropped Image" class="img-fluid" style="object-fit: contain;">
+                                  </div>
+                                </div>
+                
+                                <!-- Save Button -->
+                                <div class="card-body">
+                                  <button type="button" id="saveButton3" class="btn btn-primary">
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                
+                
+                              <div class="row">
+                                <!-- Input Field -->
+                                <div class="card-body">
+                                  <input class="form-control mb-3" type="file" name="images" id="input4"
+                                    accept="image/png, image/jpeg, image/jpg" onchange="viewImage4(event), viewImage(event, 4)">
+                                </div>
+                
+                                <!-- Preview and Cropped Images in One Line -->
+                                <div class="card-body d-flex justify-content-start align-items-center">
+                                  <!-- Preview Image -->
+                                  <div class="border rounded bg-light d-flex justify-content-center align-items-center me-3"
+                                    style="width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" alt="Preview Image" id="imgView4" class="img-fluid" style="object-fit: contain;">
+                                    <p class="mt-2 text-muted"></p>
+                                  </div>
+                
+                                  <!-- Cropped Image -->
+                                  <div class="image-cropper border rounded bg-light d-flex justify-content-center align-items-center"
+                                    style="display: none; width: 300px; height: 300px; overflow: hidden;">
+                                    <img src="" id="croppedImg4" alt="Cropped Image" class="img-fluid" style="object-fit: contain;">
+                                    <p class="mt-2 text-muted"></p>
+                                  </div>
+                                </div>
+                
+                                <!-- Save Button -->
+                                <div class="card-body ">
+                                  <button type="button" id="saveButton4" class="btn btn-primary">
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
                     </div>
                     <div>
                         <button class="btn btn-md rounded font-sm hover-up" type="submit" onclick="validateAndSubmit()">Publish</button>

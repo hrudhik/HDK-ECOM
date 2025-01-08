@@ -26,12 +26,14 @@ const loadhomepage = async (req, res) => {
     try {
         const userId = req.session.user;
         const categoryies = await Category.find({ isListed: true });
+        // console.log(categoryies,'cat')
         let productData = await Product.find({
-            isBlocked: false, category: { $in: categoryies.map(category => category._id) }, quantity: { $gt: 0 }
+            isBlocked: false,  quantity: { $gt: 0 }
         })
+        // console.log(productData,'sdfh')
 
         productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-        peoductData = productData.slice(0, 4);
+        productData = productData.slice(0, 4);
 
 
 
@@ -277,31 +279,31 @@ const loadshopePage = async (req, res) => {
         const user = req.session.user;
         const categoryies = await Category.find({ isListed: true });
         const userData = await User.findOne({ _id: user });
-        const categoryIds = categoryies.map((category) => category._id.toString());
+        // const categoryIds = categoryies.map((category) => category._id.toString());
         const page = parseInt(req.query.page) || 1
         const limit = 9;
         const skip = (page - 1) * limit;
         const products = await Product.find({
             isBlocked: false,
-            category: { $in: categoryIds },
+            // category: { $in: categoryIds }
             quantity: { $gt: 0 },
         }).sort({ createdOn: -1 }).skip(skip).limit(limit);
 
         const totalProducts = await Product.countDocuments({
             isBlocked: false,
-            category: { $in: categoryIds },
+            // category: { $in: categoryIds },
             quantity: { $gt: 0 },
         });
         const totalPages = Math.ceil(totalProducts / limit);
 
         const brands = await Brand.find({ isBlocked: false });
-        const categorywithIds = categoryies.map(category => ({ _id: category._id, name: category.name }))
+        // const categorywithIds = categoryies.map(category => ({ _id: category._id, name: category.name }))
 
 
         res.render('shope', {
             user: userData,
             products: products,
-            category: categorywithIds,
+            // category: categorywithIds,
             brand: brands,
             totalProducts: totalProducts,
             currentPage: page,
