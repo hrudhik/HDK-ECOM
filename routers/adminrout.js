@@ -5,7 +5,7 @@ const customerController = require('../controllers/customercontroller');
 const catogaryController=require("../controllers/categoryController");
 const brandController=require("../controllers/brandController");
 const productController=require('../controllers/productController')
-
+const salesReportController = require("../controllers/salesReportController");
 const { userAuth, isAdmin } = require('../middlewares/auth');
 const {upload} = require('../helpers/multer')
 // const { Admin } = require('mongodb');
@@ -71,12 +71,19 @@ router.get('/admin/users', adminController.userserech);
 
 router.get("/orders",  adminController.getAllOrders);
 router.get("/orders/:orderId",  adminController.getOrderDetails);
-router.post("/orders/:orderId/status",  adminController.updateOrderStatus);
+router.post("/orders/:orderId/:productId/status",  adminController.updateOrderStatus);
 
 //coupen 
 router.get('/listcoupen',adminController.listCoupons)
 router.post('/coupons/create',upload.single("couponImage"),adminController.createCoupons)
 router.post('/deleteCoupons/:id',adminController.deletCoupens)
+
+//salesreport
+
+router.get('/sales-report-page', salesReportController.renderSalesReportPage);
+router.get("/sales-report", salesReportController.getSalesReport);
+router.post('/sales-report/pdf', salesReportController.downloadPdf);
+router.post('/sales-report/excel', salesReportController.downloadExcel);
 
 
 

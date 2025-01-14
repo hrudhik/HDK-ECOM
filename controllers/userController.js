@@ -2,6 +2,7 @@ const User = require("../models/userSchema");
 const Category = require('../models/categorySchema');
 const Product = require('../models/productSchema');
 const Brand = require('../models/brandSchema');
+const Order=require('../models/orderSchema')
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require('bcrypt');
@@ -404,6 +405,137 @@ const getFilteredProducts = async (req, res) => {
     }
 }
 
+const topUpWallet = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        const { amount } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user.wallet) {
+            user.wallet = {
+                balance: 0,
+                transactions: []
+            };
+        }       
+
+        user.wallet.balance += Number(amount);
+        user.wallet.transactions.push({
+            type: "credit",
+            amount: Number(amount),
+            description: "Wallet Top-Up"
+        });
+        await user.save();
+
+        res.redirect("/userprofile");
+    } catch (error) {
+        console.error("Error topping up wallet:", error);
+        res.status(500).send("Failed to top up wallet.");
+    }
+};
+// const refundToWallet = async (req, res) => {
+//     try {
+//         const { orderId } = req.body; // Get the order ID from the request body
+//         const userId = req.session.user; // Get the logged-in user's ID
+
+//         // Fetch the order and user details
+//         const order = await Order.findById(orderId);
+//         const user = await User.findById(userId);
+
+//         if (!order || !user) {
+//             return res.status(404).json({ error: "Order or User not found." });
+//         }
+
+//         // Refund conditions
+//         if (order.paymentMethod === "COD" && order.status !== "Delivered") {
+//             return res
+//                 .status(400)
+//                 .json({ error: "Refund not allowed for undelivered COD orders." });
+//         }
+
+//         // Refund the amount to the wallet
+//         user.wallet.balance += order.totalAmount; // Add the refunded amount
+//         user.wallet.transactions.push({
+//             type: "credit",
+//             amount: order.totalAmount,
+//             description: `Refund for Order #${orderId}`
+//         });
+
+//         // Save the updated user
+//         await user.save();
+
+//         // Respond with success
+//         res.status(200).json({
+//             message: "Refund processed successfully.",
+//             walletBalance: user.wallet.balance
+//         });
+//     } catch (error) {
+//         console.error("Error processing refund:", error);
+//         res.status(500).json({ error: "Failed to process refund." });
+//     }
+// };
+// const refundToWallet = async (orderId, userId) => {
+//     try {
+//         // Fetch the order and user details
+//         const order = await Order.findById(orderId);
+//         const user = await User.findById(userId);
+
+//         if (!order || !user) {
+//             throw new Error("Order or User not found.");
+//         }
+
+//         // Refund conditions
+//         if (order.paymentMethod === "COD" && order.status !== "Delivered") {
+//             throw new Error("Refund not allowed for undelivered COD orders.");
+//         }
+
+//         // Refund the amount to the wallet
+//         user.wallet.balance += order.totalAmount; // Add the refunded amount
+//         user.wallet.transactions.push({
+//             type: "credit",
+//             amount: order.totalAmount,
+//             description: `Refund for Order #${orderId}`,
+//         });
+
+//         // Save the updated user
+//         await user.save();
+
+//         return { success: true, walletBalance: user.wallet.balance };
+//     } catch (error) {
+//         console.error("Error processing refund:", error);
+//         throw error; // Propagate the error to the calling function
+//     }
+// };
+
+const refundToWallet = async (orderId, userId, amount) => {
+    try {
+        // Fetch the user details
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new Error("User not found.");
+        }
+
+        // Refund the amount to the wallet
+        user.wallet.balance += amount; // Add the refunded amount
+        user.wallet.transactions.push({
+            type: "credit",
+            amount: amount,
+            description: `Refund for Order #${orderId}`,
+        });
+
+        // Save the updated user
+        await user.save();
+
+        return { success: true, walletBalance: user.wallet.balance };
+    } catch (error) {
+        console.error("Error processing refund:", error);
+        throw error; // Propagate the error to the calling function
+    }
+};
+
+
+
+
 module.exports = {
     loadhomepage,
     pagenotfound,
@@ -417,6 +549,8 @@ module.exports = {
     loadshopePage,
     filterbyprice,
     getFilteredProducts,
+    topUpWallet,
+    refundToWallet
     
 
 

@@ -55,7 +55,7 @@
                         <div class="form-group">
                             <label for="addressSelect">Select Address</label>
                             <select id="addressSelect" name="selectedAddress" class="form-control" required>
-                                <% address.address.forEach((address) => { %>
+                                <% address?.address?.forEach((address) => { %>
                                     <option value="<%= address._id %>">
                                         <%= address.name %>, <%= address.city %>, <%= address.state %>, <%= address.pincode %>,<%= address.landMark %>,<%= address.phone %>,<%=address.altPhone%>
                                     </option>
@@ -65,6 +65,16 @@
                        
                     </form>
                 </div>
+
+                <div class="form-group">
+                    <input type="text" id="couponCodeInput"  placeholder="Enter Coupon Code..." />
+                  </div>
+                  <div class="form-group">
+                    <button id="applyCouponBtn" class="btn btn-md">Apply Coupon</button>
+                    <button id="removeCouponBtn" class="btn btn-md" style="display: none;">Remove Coupon</button>
+                  </div>
+                  <div id="couponMessage" style="color: red; margin-top: 10px;"></div>
+                  
                 <div class="col-md-6">
                     <div class="order_review">
                         <div class="mb-20">
@@ -157,77 +167,174 @@
 
 <%- include("../partials/user/footer.ejs") %>  
 
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+ const placeOrderButton = document.querySelector(".btn-fill-out");
+  const addressSelect = document.getElementById("addressSelect");
+  const paymentRadios = document.getElementsByName("paymentMethod");
+  const couponCodeInput = document.getElementById("couponCodeInput");
+  const cartItems = JSON.parse(<%- JSON.stringify(cartItems) %>);
+  const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>';
+
+
+  const totalElement = document.querySelector(".product-subtotal span");
+  const originalTotal = parseFloat(totalElement.textContent.replace("₹", "").trim());
+  // const totalAmount =originalTotal
+
+placeOrderButton.addEventListener("click", async (event) => {
+  event.preventDefault();
+  console.log("Place Order button clicked");
+  
+
+  const selectedAddressId = addressSelect.value;
+  if (!selectedAddressId) {
+    alert("Please select an address to proceed.");
+    return;
+  }
+
+  const selectedPaymentMethod = Array.from(paymentRadios).find(radio => radio.checked)?.value;
+  if (!selectedPaymentMethod) {
+    alert("Please select a payment method.");
+    return;
+  }
+
+  const couponCode = couponCodeInput.value.trim();
+  console.log("Coupon Code:", couponCode);
+
+  const orderData = {
+    addressId: selectedAddressId,
+    items: cartItems.map(item => ({
+      productId: item.productId._id,
+      quantity: item.quantity,
+    })),
+    totalAmount: totalAmount, // Use discounted total if coupon applied
+    paymentMethod: selectedPaymentMethod,
+    couponCode: couponCode,
+  };
+
+  try {
+    const response = await fetch("/checkout/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      console.log('result',result)
+      
+      if (selectedPaymentMethod === "Online") {
+        console.log("front end paying amount :",result.totalAmount)
+        const options = {
+          key: "rzp_test_LbJY0AM5BiuG4B",
+          amount: result.totalAmount,
+          currency: "INR",
+          name: "HDK Times",
+          description: "Order Payment",
+          order_id: result.razorpayOrderId,
+          handler: async (paymentResponse) => {
+    paymentResponse.orderData = orderData; // Attach the original order data
+    const verifyResponse = await fetch("/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paymentResponse),
+    }).then(res => res.json());
+
+    if (verifyResponse.success) {
+        alert("Order placed successfully!");
+        window.location.href = "/userprofile";
+    } else {
+        alert("Payment verification failed");
+    }
+},
+
+          prefill: {
+            name: "Hrudhik Krihna",
+            email: "hrudhikkrishna2004@gmail.com",
+            contact: "6282970299",
+          },
+          theme: { color: "#3399cc" },
+        };
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+      } else if (selectedPaymentMethod === "COD") {
+        alert("Order placed successfully with COD!");
+        window.location.href = "/userprofile";
+      }
+    } else {
+      alert(result.message || "Failed to place order. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error placing order:", error);
+    alert("An error occurred while placing your order. Please try again.");
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
-  const placeOrderButton = document.querySelector(".btn-fill-out");
-  const addressSelect = document.getElementById("addressSelect");
-  const paymentRadios = document.getElementsByName("paymentMethod"); // Now consistently named payment method radios
+  const applyCouponBtn = document.getElementById("applyCouponBtn");
+  const removeCouponBtn = document.getElementById("removeCouponBtn");
+  const couponCodeInput = document.getElementById("couponCodeInput");
+  const couponMessage = document.getElementById("couponMessage");
+  const totalElement = document.querySelector(".product-subtotal span");
+  const originalTotal = parseFloat(totalElement.textContent.replace("₹", "").trim());
+  const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>'; 
 
-  const cartItems = JSON.parse(<%- JSON.stringify(cartItems) %>); // Safely pass cart items to JS
-  
-  const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>'; // Calculate total amount on server side and pass it directly
-console.log(cartItems)
-  placeOrderButton.addEventListener ("click", async (event) => {
-    event.preventDefault();
+  let discountedTotal = originalTotal;
 
-    console.log("clicked")
+  applyCouponBtn.addEventListener("click", async () => {
+    const couponCode = couponCodeInput.value.trim();
+    
 
-    // Get selected address
-    const selectedAddressId = addressSelect.value;
-
-    if (!selectedAddressId) {
-      alert("Please select an address to proceed.");
+    if (!couponCode) {
+      couponMessage.textContent = "Please enter a coupon code.";
       return;
     }
-
-    // Get selected payment method
-    const selectedPaymentMethod = Array.from(paymentRadios).find(radio => radio.checked)?.value;
-
-    if (!selectedPaymentMethod) {
-      alert("Please select a payment method.");
-      return;
-    }
-
-    // Prepare order data
-    const orderData = {
-      addressId: selectedAddressId,
-      items: cartItems.map(item => ({
-        productId: item.productId._id,
-        quantity: item.quantity,
-      })),
-      totalAmount: totalAmount, // Use the server-calculated totalAmount
-      paymentMethod: selectedPaymentMethod, // Add selected payment method
-    };
 
     try {
-      // Send data to the server
-      const response = await fetch("/checkout/process", {
+      const response = await fetch("/checkout/apply-coupon", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ totalAmount,couponCode}),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        alert("Order placed successfully!");
-        window.location.href = "/userprofile"; // Redirect to order confirmation page
+        discountedTotal = originalTotal - result.discountAmount;
+        totalElement.textContent = `₹ ${discountedTotal}`;
+        couponMessage.textContent = "Coupon applied successfully!";
+        couponMessage.style.color = "green";
+
+        // Toggle buttons
+        applyCouponBtn.style.display = "none";
+        removeCouponBtn.style.display = "inline-block";
+        couponCodeInput.disabled = true;
       } else {
-        alert(result.message || "Failed to place order. Please try again.");
+        couponMessage.textContent = result.error || "Invalid coupon code.";
+        couponMessage.style.color = "red";
       }
     } catch (error) {
-      console.error("Error placing order:", error);
-      alert("An error occurred while placing your order. Please try again.");
+      console.error("Error applying coupon:", error);
+      couponMessage.textContent = "An error occurred. Please try again.";
+      couponMessage.style.color = "red";
     }
+  });
+
+  removeCouponBtn.addEventListener("click", () => {
+    discountedTotal = originalTotal;
+    totalElement.textContent = `₹ ${originalTotal}`;
+    couponMessage.textContent = "";
+
+    // Toggle buttons
+    applyCouponBtn.style.display = "inline-block";
+    removeCouponBtn.style.display = "none";
+    couponCodeInput.disabled = false;
+    couponCodeInput.value = "";
   });
 });
 
 
 
 
-
 </script>
+

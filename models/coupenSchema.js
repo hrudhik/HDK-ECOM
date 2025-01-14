@@ -67,7 +67,11 @@ const couponSchema = new Schema({
     couponImage:{
         type:String,
         required:true,
-    }
+    },
+    minPurchaseAmount: { 
+        type: Number,
+        required: true,
+    },
 });
 
 const Coupon = mongoose.model("Coupon", couponSchema);

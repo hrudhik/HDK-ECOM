@@ -162,7 +162,7 @@
                  </li>
                  <li class="nav-item">
                    <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false">
-                     <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet Status
+                     <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet 
                    </a>
                  </li>
                  <li class="nav-item">
@@ -291,21 +291,26 @@
                             <% order.items.forEach(item => { %>
                                 <tr>
                                     <td><%= item.productId?.productName %></td>
-                                    <td><%= order.status %></td>
+                                    <td><%= item.status %></td>
                                     <td><%= item.quantity  %></td>
-                                    <td><%= item.price  %></td>
+                                    <td><%= order.totalAmount  %></td>
                                     <td>
                                       <% if (item.status === 'Pending') { %>
                                         <form action="/orders/<%= order._id %>/product/<%= item.productId?._id %>/cancel" method="POST" style="display:inline;">
                                           <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
                                         </form>
+                                       
                                       <% } else if (item.status === 'Cancelled') { %>
                                         <span class="text-danger">Cancelled</span>
                                       <% } else if (item.status === 'Shipped') { %>
                                         <span class="text-warning">Shipped</span>
                                       <% } else if (item.status === 'Delivered') { %>
-                                        <span class="text-success">Delivered</span>
-                                      <% } %>
+                                        <form action="/orders/<%= order._id %>/product/<%= item.productId?._id %>/return" method="POST" style="display:inline;">
+                                          <button type="submit" class="btn btn-danger btn-sm">Retun</button>
+                                        </form>
+                                      <% } else if(item.status=== "Return"){ %>
+                                        <span class="text-warning" >Return</span>
+                                        <%}%>
                                   </td>
                                 </tr>
                             <% }) %>
@@ -329,13 +334,12 @@
                    <div class="card-body contact-from-area">
                      <div class="row">
                        <div class="col-lg-8 mx-auto text-center mt-90">
-                         <form>
-                           <div class="form-group">
-                             <label for="walletAmount" class="h4">Amount</label>
-                             <div class="h3"></div>
-                           </div>
-                           <button type="button" class="btn btn-success" onclick="">Add Money</button>
-                         </form>
+                        <h3>Balance: ₹<%= walletBalance %></h3>
+                        <form action="/top-up " method="POST">
+                          <label for="amount">Add Money:</label>
+                          <input type="number" id="amount" name="amount" min="1" required />
+                          <button type="submit">Add Money</button>
+                      </form>
                        </div>
                      </div>
                    </div>
@@ -350,7 +354,15 @@
                    </div>
                    <div class="card-body">
                      <div class="table-responsive">
-                       <table class="table">
+                      <ul>
+                        <% walletTransactions.forEach((transaction) => { %>
+                            <li>
+                                <strong><%= transaction.type %></strong>: ₹<%= transaction.amount %> 
+                                (<%= transaction.description %>) on <%= transaction.date %>
+                            </li>
+                        <% }) %>
+                    </ul>
+                       <!-- <table class="table">
                          <thead>
                            <tr>
                              <th>Date</th>
@@ -365,7 +377,7 @@
                              <td></td>
                            </tr>
                          </tbody>
-                       </table>
+                       </table> -->
                      </div>
                    </div>
                  </div>

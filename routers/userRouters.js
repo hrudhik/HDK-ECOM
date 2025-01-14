@@ -5,6 +5,7 @@ const userController = require('../controllers/userController');
 const userproductController=require('../controllers/userproductController');
 const profileController=require("../controllers/profileController");
 const cartControllrer=require('../controllers/cartController')
+const paymentController=require('../controllers/paymentController')
 const { userAuth, adminAuth, isLoggedIn } = require('../middlewares/auth');
 
 
@@ -75,8 +76,11 @@ router.get('/wishlist',userAuth,cartControllrer.loadwhishlist);
 router.post('/addTowishlist',userAuth,cartControllrer.addToWishlist)
 router.post('/wishlist/remove', userAuth,cartControllrer.removeFromWishlist);
 router.get("/getcheckout",userAuth, cartControllrer.getcheckout)
-router.post("/checkout/process" , userAuth,cartControllrer.placeOrder);
+router.post("/checkout/process" , userAuth,cartControllrer.placeorder);
 router.post('/orders/:orderId/product/:productId/cancel',userAuth,cartControllrer.cancelOrder);
+router.post('/orders/:orderId/product/:productId/return',userAuth,cartControllrer.returnOrder);
+router.post("/checkout/apply-coupon", userAuth,cartControllrer.applyCoupon);
+
 
 
 // router.get('/order-confirmation', userAuth, cartControllrer.getOrderConfirmation);
@@ -88,10 +92,25 @@ router.post('/orders/:orderId/product/:productId/cancel',userAuth,cartControllre
 router.get('/login', isLoggedIn, userController.loadlogin);
 router.post('/login', isLoggedIn, userController.login);
 router.get('/logout', userController.logout)
-
 router.get('/productDetails',userAuth,userproductController.productDetails)
 
+// wallet
+// router.get('/wallet',userAuth,userController.getWallet)
+router.post( "/top-up",userAuth,userController.topUpWallet)
 
+//getpayment
+// router.get('/razorpay',(req,res)=>{
+//   res.render('razorPay')
+// })
+
+// Route to create a Razorpay order
+// router.post("/create-order", createOrder);
+
+// Route to verify Razorpay payment
+router.post('/verify-payment', userAuth, paymentController.verifyPayment);
+
+// router.post('/place-order',paymentController.placeOrder)
+// router.post("/verify-payment", cartControllrer.verifyPayment)
 
 
 module.exports = router

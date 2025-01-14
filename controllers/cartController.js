@@ -4,8 +4,11 @@ const User = require('../models/userSchema');
 const Order = require('../models/orderSchema');
 const Wishlist = require("../models/wishlist");
 const Address = require('../models/addressSchema');
+const Coupon= require('../models/coupenSchema');
+const razorpay=require('../config/razorpay')
 const mongoose = require('mongoose')
 const util = require('util')
+const {refundToWallet}=require('../controllers/userController')
 
 
 
@@ -92,12 +95,12 @@ const updateCartQuantity = async (req, res) => {
         const { action } = req.body; // Action: "increase" or "decrease"
         const userId = req.session.user; // Logged-in user ID
 
-        console.log("User ID:", userId);
-        console.log("Product ID:", productId);
-        console.log("Action:", action);
+        // console.log("User ID:", userId);
+        // console.log("Product ID:", productId);
+        // console.log("Action:", action);
 
         const cart = await Cart.findOne({ userId }).populate('items.productId');
-        console.log("Cart fetched:", cart);
+        // console.log("Cart fetched:", cart);
 
         if (!cart) {
             return res.redirect("/cart");
@@ -107,7 +110,7 @@ const updateCartQuantity = async (req, res) => {
         const itemIndex = cart.items.findIndex(
             (item) => item.productId._id.toString() === productId
         );
-        console.log("Item Index:", itemIndex);
+        // console.log("Item Index:", itemIndex);
 
         if (itemIndex >= 0) {
             // Update the quantity based on action
@@ -119,7 +122,7 @@ const updateCartQuantity = async (req, res) => {
                 console.log("Invalid action or minimum quantity reached.");
             }
 
-            console.log("Updated Quantity:", cart.items[itemIndex].quantity);
+            // console.log("Updated Quantity:", cart.items[itemIndex].quantity);
 
             // Save the updated cart
             await cart.save();
@@ -301,76 +304,347 @@ const getOrderConfirmation = async (req, res) => {
     }
 };
 
+// const placeOrder = async (req, res) => {
+//     try {
+//         const userId = req.session.user;
+//         const { paymentMethod, totalAmount, addressId, couponCode } = req.body;
+//         let discount = 0; // Default discount is 0
+//         console.log(paymentMethod,totalAmount,addressId,couponCode);
+        
+
+//         // Validate addressId
+//         if (!mongoose.isValidObjectId(addressId)) {
+//             return res.status(400).json({ error: "Invalid address ID." });
+//         }
+
+//         // Fetch the cart
+//         const cart = await Cart.findOne({ userId }).populate('items.productId');
+//         if (!cart || cart.items.length === 0) {
+//             return res.status(400).json({ error: "Your cart is empty." });
+//         }
+
+//         // Fetch the address
+//         const address = await Address.findOne({
+//             userId: new mongoose.Types.ObjectId(userId),
+//             "address._id": new mongoose.Types.ObjectId(addressId),
+//         });
+
+//         if (!address) {
+//             return res.status(400).json({ error: "The address is not selected." });
+//         }
+
+//         const foundAddress = address.address.find((addr) => addr._id.toString() === addressId);
+
+//         // Validate payment method and total amount
+//         if (!paymentMethod || !totalAmount) {
+//             return res.status(400).json({ error: "Payment method and total amount are required." });
+//         }
+
+//         // Validate and apply coupon
+//         if (couponCode) {
+//             console.log('coupen finding');
+            
+//             const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+//             console.log("coupon:",coupon)
+//             if (coupon) {
+//                 if (totalAmount >= coupon.minPurchaseAmount) {
+//                     discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+//                     console.log(discount);
+                    
+//                 } else {
+//                     //  res.status(400).json({ message: `Coupon requires a minimum purchase of ${coupon.minPurchaseAmount}.` });
+//                     discount= 0;
+//                 }
+//             } 
+//         }
+//         console.log("coupon offering finished:",discount);
+        
+//         console.log(cart.items)
+//         // Create order items
+//         const orderItems = cart.items.map(item => ({
+//             productId: item.productId._id,
+//             quantity: item.quantity,
+//             price: item.productId.salePrice,
+//         }));
+//         console.log("orderItems",orderItems);
+//         console.log("lcfvgh",totalAmount,discount);
+        
 
 
+//         // Calculate final amount
+//         const finalAmount = totalAmount - discount;
+//         console.log("finalAmount:",finalAmount);
+        
 
-const placeOrder = async (req, res) => {
+//         // Create and save the order
+//         const order = new Order({
+//             userId: userId,
+//             paymentMethod: paymentMethod,
+//             totalAmount: finalAmount,
+//             items: orderItems,
+//             shippingAddress: foundAddress,
+//         });
+//         console.log("Order:",order);
+        
+
+//         await order.save();
+
+//         // Clear the cart
+//         cart.items = [];
+//         await cart.save();
+
+//         res.status(200).json({ 
+//             message: "Order placed successfully.", 
+//             orderId: order._id, 
+//             finalAmount 
+//         });
+//     } catch (error) {
+//         console.error("Error processing order:", error);
+//         res.status(500).json({ error: "Failed to place order. Please try again later." });
+//     }
+// };
+// const Razorpay = require("razorpay");
+// const crypto = require("crypto");
+
+// const razorpayInstance = new Razorpay({
+//     key_id: "rzp_test_LbJY0AM5BiuG4B",
+//     key_secret: "PddJzS1noEfGR7L2AsxVAHtV",
+// });const razorpayInstance = require("../config/razorpay");
+// const razorpayInstance = require("../config/razorpay");
+// const placeOrder = async (req, res) => {
+//     try {
+//         const userId = req.session.user;
+//         const{ paymentMethod, totalAmount, addressId, couponCode } = req.body;
+//         let discount = 0;
+//         console.log(paymentMethod);
+        
+
+//         if (!mongoose.isValidObjectId(addressId)) {
+//             return res.status(400).json({ error: "Invalid address ID." });
+//         }
+
+//         const cart = await Cart.findOne({ userId }).populate("items.productId");
+//         if (!cart || cart.items.length === 0) {
+//             return res.status(400).json({ error: "Your cart is empty." });
+//         }
+
+//         const address = await Address.findOne({
+//             userId: new mongoose.Types.ObjectId(userId),
+//             "address._id": new mongoose.Types.ObjectId(addressId),
+//         });
+//         if (!address) {
+//             return res.status(400).json({ error: "The address is not selected." });
+//         }
+
+//         const foundAddress = address.address.find((addr) => addr._id.toString() === addressId);
+//         if (!foundAddress) {
+//             return res.status(400).json({ error: "Address not found." });
+//         }
+
+//         if (!paymentMethod || !totalAmount) {
+//             return res.status(400).json({ error: "Payment method and total amount are required." });
+//         }
+
+//         if (couponCode) {
+//             const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+//             if (coupon && totalAmount >= coupon.minPurchaseAmount) {
+//                 discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+//             }
+//         }
+
+//         const orderItems = cart.items.map((item) => ({
+//             productId: item.productId._id,
+//             quantity: item.quantity,
+//             price: item.productId.salePrice,
+//         }));
+
+//         const finalAmount = totalAmount - discount;
+
+//         if (paymentMethod === "COD") {
+//             const order = new Order({
+//                 userId: userId,
+//                 paymentMethod: paymentMethod,
+//                 totalAmount: finalAmount,
+//                 items: orderItems,
+//                 shippingAddress: foundAddress,
+//             });
+
+//             await order.save();
+//             cart.items = [];
+//             await cart.save();
+
+//             return res.status(200).json({
+//                 message: "Order placed successfully.",
+//                 orderId: order._id,
+//                 finalAmount,
+//             });
+//         } else if (paymentMethod === "Online") {
+//             let razorpayOrder;
+//             try {
+//                 razorpayOrder = await razorpayInstance.orders.create({
+//                     amount: finalAmount * 100, // Amount in paise
+//                     currency: "INR",
+//                     receipt: `receipt_${Date.now()}`,
+//                 });
+//             } catch (razorpayError) {
+//                 console.error("Razorpay order creation failed:", razorpayError);
+//                 return res.status(500).json({ error: "Failed to initiate online payment. Please try again." });
+//             }
+
+//             return res.status(200).json({
+//                 message: "Proceed to payment.",
+//                 razorpayOrderId: razorpayOrder.id,
+//                 finalAmount,
+//             });
+//         }
+//     } catch (error) {
+//         console.error("Error processing order:", error);
+//         return res.status(500).json({ error: "Failed to place order. Please try again later." });
+//     }
+// };
+const placeorder = async (req, res) => {
+    const userId=req.session.user;
+    const { paymentMethod, totalAmount, addressId ,couponCode} = req.body;
+    let discount
+    
+    console.log("paymentmethod",paymentMethod);
+    console.log("amount",totalAmount)
+    
+   
+
+            // console.log("discount:",discount)
+
     try {
-        const userId = req.session.user;
-        const { paymentMethod, totalAmount, addressId } = req.body;
-        let foundAddress
+        if (paymentMethod === 'COD') {
+            try {
+                       
+                       
+                        let foundAddress
+                      
+                        // console.log("totalAmount:",totalAmount);
+                        // console.log("couponCode:",couponCode)
+                
+                        
+                        // console.log(paymentMethod, ':', totalAmount, addressId
+                
+                        // );
+                
+                        if (couponCode) {
+                            const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+                            // console.log("coupon:",coupon);
+                            if (coupon) {
+                                if(totalAmount>coupon.minPurchaseAmount){
+                                    console.log(coupon.minPurchaseAmount)
+                                    discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+                                          console.log("discount:",discount);          
+                                        }
+                                    return res.status(200).json({totalAmount,message: "Coupon applied successfully!"});
+                        
+                                }   
+                                }
+                    
+                     
+                        // Validate addressId
+                        if (!mongoose.isValidObjectId(addressId)) {
+                            return res.status(400).json({ error: "Invalid address ID." });
+                        }
+                
+                        // Fetch cart and address
+                        const cart = await Cart.findOne({ userId }).populate('items.productId');
+                        const address = await Address.findOne({
+                            userId: new mongoose.Types.ObjectId(userId),
+                            "address._id": new mongoose.Types.ObjectId(addressId), // Querying the array for the address object
+                        });
+                
+                        // console.log(address);
+                
+                        if (!address) {
+                            return res.status(400).json({ error: "The address is not selected." });
+                        }
+                        if (address) {
+                             foundAddress = address.address.find((addr) => addr._id.toString() === addressId);
+                            console.log(foundAddress);
+                          } else {
+                            console.log("Address not found");
+                          }
+                
+                          
+                
+                        // Check for missing fields
+                        if (!paymentMethod || !totalAmount) {
+                            return res.status(400).json({ error: "Payment method and total amount are required." });
+                        }
+                
+                        // Create order items
+                        const orderItems = cart.items.map(item => ({
+                            productId: item.productId,
+                            quantity: item.quantity,
+                            price: item.productId.salePrice,
+                        }));
+                
+                        // Create and save the order
+                        const order = new Order({
+                            userId: req.session.user,
+                            paymentMethod,
+                            totalAmount:totalAmount-discount ||totalAmount ,
+                            items: orderItems,
+                            shippingAddress: foundAddress, // Include the address in the order
+                        });
+                
+                        await order.save();
+                
+                        cart.items=[];
+                      await cart.save();
+                         return res.status(200).json({ message: "Order placed successfully." });
+                    } catch (error) {
+                        console.error("Error processing order:", error);
+                       return res.status(500).json({ error: "Failed to place order. Please try again later." });
+                    }
+        } else if (paymentMethod === 'Online') {
 
-        console.log(paymentMethod, ':', totalAmount, addressId
+            console.log(totalAmount)
+            console.log(discount)
 
-        );
-
-        // Validate addressId
-        if (!mongoose.isValidObjectId(addressId)) {
-            return res.status(400).json({ error: "Invalid address ID." });
+            
+                let finalAmount;
+                if (couponCode) {
+                  const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+                  if (coupon && totalAmount > coupon.minPurchaseAmount) {
+                    discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+                  }
+                }
+              
+                finalAmount = totalAmount - discount || totalAmount;
+              
+                const options = {
+                  amount: finalAmount * 100, // Convert to paise
+                  currency: 'INR',
+                  receipt: `order_rcptid_${Date.now()}`,
+                };
+              
+                const order = await razorpay.orders.create(options);
+              
+                return res.json({
+                  success: true,
+                  message: "Razorpay payment initiated",
+                  razorpayOrderId: order.id,
+                  amount: order.amount,
+                  currency: order.currency,
+                });
+              
+              
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid payment method' });
         }
-
-        // Fetch cart and address
-        const cart = await Cart.findOne({ userId }).populate('items.productId');
-        const address = await Address.findOne({
-            userId: new mongoose.Types.ObjectId(userId),
-            "address._id": new mongoose.Types.ObjectId(addressId), // Querying the array for the address object
-        });
-
-        console.log(address);
-
-        if (!address) {
-            return res.status(400).json({ error: "The address is not selected." });
-        }
-        if (address) {
-             foundAddress = address.address.find((addr) => addr._id.toString() === addressId);
-            console.log(foundAddress);
-          } else {
-            console.log("Address not found");
-          }
-
-          
-
-        // Check for missing fields
-        if (!paymentMethod || !totalAmount) {
-            return res.status(400).json({ error: "Payment method and total amount are required." });
-        }
-
-        // Create order items
-        const orderItems = cart.items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.productId.salePrice,
-        }));
-
-        // Create and save the order
-        const order = new Order({
-            userId: req.session.user,
-            paymentMethod,
-            totalAmount,
-            items: orderItems,
-            shippingAddress: foundAddress, // Include the address in the order
-        });
-
-        await order.save();
-
-        cart.items=[];
-      await cart.save();
-        res.status(200).json({ message: "Order placed successfully." });
     } catch (error) {
-        console.error("Error processing order:", error);
-        res.status(500).json({ error: "Failed to place order. Please try again later." });
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Unable to process order' });
     }
-};
+}
+
+
+
+
 
 
 const getcheckout = async (req, res) => {
@@ -401,22 +675,210 @@ const getcheckout = async (req, res) => {
 };
 
 
+  
+
+const applyCoupon = async (req, res) => {
+    try {
+        const { couponCode, totalAmount } = req.body;
+
+        // Check if coupon code is provided
+        if (!couponCode) {
+            return res.status(400).json({ error: "Coupon code is required." });
+        }
+
+        // Find the coupon in the database
+        const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+
+        // Check if the coupon is valid
+        if (!coupon) {
+            return res.status(400).json({ error: "Invalid or expired coupon code." });
+        }
+
+        // Check if the total amount meets the minimum purchase amount
+        // console.log("total:",totalAmount);
+        // console.log('couponmin amount:',coupon.minPurchaseAmount)
+
+        if(totalAmount>coupon.minPurchaseAmount){
+            // console.log(coupon.minPurchaseAmount)
+            const discountAmount = (totalAmount * coupon.discountPercentage) / 100;
+
+            // // Respond with the discount amount
+            return res.status(200).json({ 
+                discountAmount, 
+                message: "Coupon applied successfully!" 
+            });
+
+        }else{
+            console.log(totalAmount)
+            return res.status(400).json({ 
+                error: `This coupon requires a minimum purchase of ${coupon.minPurchaseAmount}.`
+            });
+        }
+            
+     
+    } catch (error) {
+        console.error("Error validating coupon:", error);
+        res.status(500).json({ error: "Failed to apply coupon. Please try again later." });
+    }
+};
+
+
+
+
+
+
+// const cancelOrder = async (req, res) => {
+//     try {
+//         const { orderId, productId } = req.params; // Get orderId and productId from the URL
+//         // console.log("Order ID:", orderId);
+//         // console.log("Product ID:", productId);
+//         // console.log("User ID from session:", req.session.user);
+
+//         // Convert orderId to ObjectId
+//         const objectId = new mongoose.Types.ObjectId(orderId);
+//         const userId = new mongoose.Types.ObjectId(req.session.user);
+
+//         // Find the order and ensure it belongs to the user
+//         const order = await Order.findOne({ _id: objectId, userId });
+//         console.log("Order Found:", userId);
+
+//         if (!order) {
+//             return res.status(404).json({ error: "Order not found." });
+//         }
+
+//         // Find the product in the items array
+//         const product = order.items.find(
+//             (item) => item.productId.toString() === productId
+//         );
+
+//         if (!product) {
+//             return res.status(404).json({ error: "Product not found in this order." });
+//         }
+
+//         // Check if the product is already canceled or shipped
+//         if (product.status === "Shipped") {
+//             return res.status(400).json({
+//                 error: "Product has already been shipped and cannot be canceled.",
+//             });
+//         }
+//         if (product.status === "Cancelled") {
+//             return res.status(400).json({ error: "Product is already canceled." });
+//         }
+
+//         // Update the product status to "Cancelled"
+//         product.status = "Cancelled";
+//         await order.save();
+
+//         await refundToWallet(req, res);
+
+//         res.status(200).redirect('/userProfile')//json({ message: "Product canceled successfully." });
+//     } catch (error) {
+//         console.error("Error canceling product:", error);
+//         res
+//             .status(500)
+//             .json({ error: "Failed to cancel the product. Please try again later." });
+//     }
+// };
+
+// const returnOrder= async (req,res)=>{
+//     try {
+//         const{orderId,productId}=req.params;
+//         const userId=req.session.user;
+
+//         const orderfindId= new mongoose.Types.ObjectId(orderId)
+//         const user= new mongoose.Types.ObjectId(orderId)
+//         // console.log("orderfindId",orderfindId);
+//         // console.log('user',user);
+        
+        
+//         const order= await Order.findOne({_id:orderfindId});
+//         console.log("the returning order:",order);
+
+//         const product= order.items.find(
+//             (item)=> item.productId.toString()=== productId
+//         );
+        
+//         if(product.status==="Return"){
+//             return res.status(400).json({success:false,message:"the product is already returnd"})
+//         }
+//         product.status="Return";
+//         await order.save();
+
+//         const refundResult = await refundToWallet(orderId, userId);
+//         console.log("Refund Result:", refundResult);
+//         res.redirect('/userProfile');
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({success:false,message:"the product retuning failed"})
+        
+//     }
+// }
+
+
+// const cancelOrder = async (req, res) => {
+//     try {
+//         const { orderId, productId } = req.params; // Extract orderId and productId from request parameters
+//         const userId = req.session.user; // Get the logged-in user's ID
+
+//         // Find the order and ensure it belongs to the user
+//         const order = await Order.findOne({ _id: orderId, userId });
+
+//         if (!order) {
+//             return res.status(404).json({ error: "Order not found." });
+//         }
+
+//         // Find the product in the items array
+//         const product = order.items.find(
+//             (item) => item.productId.toString() === productId
+//         );
+
+//         if (!product) {
+//             return res.status(404).json({ error: "Product not found in this order." });
+//         }
+
+//         // Check if the product is already canceled or shipped
+//         if (product.status === "Shipped") {
+//             return res.status(400).json({
+//                 error: "Product has already been shipped and cannot be canceled.",
+//             });
+//         }
+//         if (product.status === "Cancelled") {
+//             return res.status(400).json({ error: "Product is already canceled." });
+//         }
+
+//         // Update the product status to "Cancelled"
+//         product.status = "Cancelled";
+//         await order.save();
+
+//         // Attempt refund
+//         if (order.paymentMethod !== "COD") {
+//             try {
+//                 // Pass the orderId and other details to refundToWallet
+//                 const refundResult = await refundToWallet(orderId, userId);
+//                 console.log("Refund Result:", refundResult);
+//             } catch (refundError) {
+//                 console.warn("Refund skipped:", refundError.message);
+//             }
+//         }
+
+//         res.redirect("/userProfile"); // Or use res.status(200).json() based on frontend handling
+//     } catch (error) {
+//         console.error("Error canceling product:", error);
+//         res
+//             .status(500)
+//             .json({ error: "Failed to cancel the product. Please try again later." });
+//     }
+// };
+
 
 
 const cancelOrder = async (req, res) => {
     try {
-        const { orderId, productId } = req.params; // Get orderId and productId from the URL
-        console.log("Order ID:", orderId);
-        console.log("Product ID:", productId);
-        console.log("User ID from session:", req.session.user);
-
-        // Convert orderId to ObjectId
-        const objectId = new mongoose.Types.ObjectId(orderId);
-        const userId = new mongoose.Types.ObjectId(req.session.user);
+        const { orderId, productId } = req.params; // Extract orderId and productId from request parameters
+        const userId = req.session.user; // Get the logged-in user's ID
 
         // Find the order and ensure it belongs to the user
-        const order = await Order.findOne({ _id: objectId, userId });
-        console.log("Order Found:", order);
+        const order = await Order.findOne({ _id: orderId, userId });
 
         if (!order) {
             return res.status(404).json({ error: "Order not found." });
@@ -445,7 +907,17 @@ const cancelOrder = async (req, res) => {
         product.status = "Cancelled";
         await order.save();
 
-        res.status(200).redirect('/userProfile')//json({ message: "Product canceled successfully." });
+        // Attempt refund only for online payments
+        if (order.paymentMethod === "Online") {
+            try {
+                const refundResult = await refundToWallet(orderId, userId, product.totalAmount);
+                console.log("Refund Result:", refundResult);
+            } catch (refundError) {
+                console.warn("Refund skipped:", refundError.message);
+            }
+        }
+
+        res.redirect("/userProfile"); // Or use res.status(200).json() based on frontend handling
     } catch (error) {
         console.error("Error canceling product:", error);
         res
@@ -455,8 +927,49 @@ const cancelOrder = async (req, res) => {
 };
 
 
+const returnOrder = async (req, res) => {
+    try {
+        const { orderId, productId } = req.params;
+        const userId = req.session.user;
 
+        const order = await Order.findOne({ _id: orderId });
 
+        if (!order) {
+            return res.status(404).json({ error: "Order not found." });
+        }
+
+        const product = order.items.find(
+            (item) => item.productId.toString() === productId
+        );
+
+        if (!product) {
+            return res.status(404).json({ error: "Product not found in this order." });
+        }
+
+        if (product.status === "Return") {
+            return res.status(400).json({ success: false, message: "The product is already returned." });
+        }
+
+        // Update the product status to "Return"
+        product.status = "Return";
+        await order.save();
+
+        // Attempt refund based on conditions
+        if (order.paymentMethod === "Online" || (order.paymentMethod === "COD" && order.status === "Delivered")) {
+            try {
+                const refundResult = await refundToWallet(orderId, userId, product.totalAmount);
+                console.log("Refund Result:", refundResult);
+            } catch (refundError) {
+                console.warn("Refund skipped:", refundError.message);
+            }
+        }
+
+        res.redirect('/userProfile');
+    } catch (error) {
+        console.error("Error processing return:", error);
+        res.status(500).json({ success: false, message: "Failed to return the product. Please try again later." });
+    }
+};
 
 
 
@@ -472,8 +985,10 @@ module.exports = {
     loadwhishlist,
     addToWishlist,
     removeFromWishlist,
-    placeOrder,
+    placeorder,
     getcheckout,
-    cancelOrder
+    cancelOrder,
+    returnOrder,
+    applyCoupon
 
 }

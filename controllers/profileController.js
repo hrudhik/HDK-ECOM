@@ -16,13 +16,17 @@ const userProfile=async (req,res)=>{
         const userDate=await User.findById(userId);
         const addresData=await Address.findOne({userId:userId});
         const orderDetails= await Order.find({userId}).populate("items.productId")
-       
-        console.log(orderDetails)
+
+        // console.log(orderDetails)
 
         res.render('userProfile',{
             user:userDate,
             userAddress:addresData,
-            orderDetails:orderDetails
+            orderDetails:orderDetails,
+            walletBalance:userDate.wallet.balance,
+            walletTransactions :userDate.wallet.transactions
+       
+
         })
 
     } catch (error) {

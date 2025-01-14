@@ -11,8 +11,8 @@
                         <tr>
                             <th>Order ID</th>
                             <th>User</th>
+                            <th>Product Details</th>
                             <th>Total Amount</th>
-                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -20,33 +20,42 @@
                         <% orders.forEach(function(order) { %>
                             <tr>
                                 <td><%= order._id %></td>
-                                <td><%= order.userId.name %></td>
+                                <td><%= order.userId?.name %></td>
+                                <td>
+                                    <ul>
+                                        <% order.items.forEach(function(item) { %>
+                                            <li>
+                                                <strong>Product ID:</strong> <%= item.productId %><br>
+                                                <strong>Quantity:</strong> <%= item.quantity %><br>
+                                                <strong>Price:</strong> ₹<%= item.price %><br>
+                                                <strong>Status:</strong>
+                                                <span class="badge 
+                                                    <%= item.status === 'Pending' ? 'bg-warning' : 
+                                                        item.status === 'Shipped' ? 'bg-info' : 
+                                                        item.status === 'Delivered' ? 'bg-success' : 
+                                                        'bg-danger' %>">
+                                                    <%= item.status %>
+                                                </span>
+                                                <form action="/admin/orders/<%= order._id %>/<%=item.productId%>/status" 
+                                                      method="POST" 
+                                                      class="d-inline mt-2">
+                                                    <select name="status" class="form-select form-select-sm d-inline w-auto">
+                                                        <option value="Pending" <%= item.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                                        <option value="Shipped" <%= item.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                                        <option value="Delivered" <%= item.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                                        <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                                </form>
+                                            </li>
+                                        <% }); %>
+                                    </ul>
+                                </td>
                                 <td>₹<%= order.totalAmount.toFixed(2) %></td>
                                 <td>
-                                    <span class="badge 
-                                        <%= order.status === 'Pending' ? 'bg-warning' : 
-                                            order.status === 'Shipped' ? 'bg-info' : 
-                                            order.status === 'Delivered' ? 'bg-success' : 
-                                            'bg-danger' %>">
-                                        <%= order.status %>
-                                    </span>
-                                </td>
-                                <td>
-                                    <!-- View Details Button -->
                                     <a href="/admin/orders/<%= order._id %>" class="btn btn-outline-primary btn-sm">
-                                        View Details
+                                        View Order
                                     </a>
-
-                                    <!-- Status Update Form -->
-                                    <form action="/admin/orders/<%= order._id %>/status" method="POST" class="d-inline">
-                                        <select name="status" class="form-select form-select-sm d-inline w-auto">
-                                            <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                            <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                            <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                            <option value="Canceled" <%= order.status === 'Canceled' ? 'selected' : '' %>>Canceled</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-primary btn-sm">Update</button>
-                                    </form>
                                 </td>
                             </tr>
                         <% }); %>

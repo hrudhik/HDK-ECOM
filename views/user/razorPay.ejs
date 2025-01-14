@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Razorpay Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Pay Now</h1>
+    <button id="payButton">Pay ₹500</button>
+
+    <script>
+        const options = {
+            key: "YOUR_RAZORPAY_KEY_ID", // Replace with your Razorpay Key ID
+            amount: 50000, // Amount in paise
+            currency: "INR",
+            name: "Your Company Name",
+            description: "Test Transaction",
+            order_id: "ORDER_ID_FROM_SERVER", // Replace with actual order ID
+            handler: function (response) {
+                // Send payment details to the server for verification
+                fetch("/verify-payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpaySignature: response.razorpay_signature,
+                    }),
+                })
+                .then((res) => res.json())
+                .then((data) => alert("Payment Success: " + data.success))
+                .catch((err) => console.error("Error verifying payment:", err));
+            },
+            prefill: {
+                name: "John Doe",
+                email: "john@example.com",
+                contact: "9999999999",
+            },
+        };
+
+        const rzp = new Razorpay(options);
+        document.getElementById("payButton").onclick = function () {
+            rzp.open();
+        };
+    </script>
+</body>
+</html>
