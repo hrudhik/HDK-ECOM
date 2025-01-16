@@ -51,7 +51,7 @@
                             <!-- Price -->
                             <td>₹<%= item.productId.salePrice %></td>
                             <!-- Total -->
-                            <td>₹<%= item.productId.salePrice * item.quantity %></td>
+                            <td id="tabletotal">₹<%= item.productId.salePrice * item.quantity %></td>
                             <!-- Remove -->
                             <td>
                                 <a href="/remove/<%=item.productId._id %>" class="btn btn-sm btn-danger">Remove</a>
@@ -77,7 +77,7 @@
                     <tbody>
                         <tr>
                             <td class="cart_total_label">Cart Subtotal</td>
-                            <td class="cart_total_amount">
+                            <td id="checkouttotal"   class="cart_total_amount">
                                 <span class="font-lg fw-900 text-brand">₹ <%= cart.items.reduce((sum, item) => sum += item.productId.salePrice * item.quantity, 0) %></span>
                             </td>
                         </tr>
@@ -108,37 +108,43 @@
 
 <%- include("../partials/user/footer.ejs") %>
 <script>
+    
     document.querySelectorAll('.update-quantity').forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const productId = event.target.getAttribute('data-id');
-            const action = event.target.getAttribute('data-action');
-            
-            try {
-                // Send an AJAX request to the server
-                const response = await fetch(`/updateQuantity/${productId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ action }),
-                });
+    button.addEventListener('click', async (event) => {
+        const productId = event.target.getAttribute('data-id');
+        const action = event.target.getAttribute('data-action');
 
-                if (response.ok) {
-                    const data = await response.json();
+        try {
+            // Send an AJAX request to the server
+            const response = await fetch(`/updateQuantity/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action }),
+            });
 
-                    // Update the quantity in the UI
-                    document.getElementById(`quantity-${productId}`).textContent = data.newQuantity;
+            if (response.ok) {
+                const data = await response.json();
 
-                    // Update the cart total
-                    document.querySelector('.cart_total_amount strong span').textContent = `₹ ${data.cartTotal}`;
-                } else {
-                    console.error('Failed to update quantity');
-                }
-            } catch (error) {
-                console.error('Error:', error);
+                // Update the quantity in the UI
+                document.getElementById(`quantity-${productId}`).textContent = data.newQuantity;
+
+                document.getElementById('checkouttotal').textContent=`₹${data.cartTotal}`
+
+                document.getElementById('tabletotal').textContent= data.cartTotal
+
+                // Update the cart total
+                document.querySelector('.cart_total_amount strong span').textContent = `₹ ${data.cartTotal}`;
+            } else {
+                console.error('Failed to update quantity');
             }
-        });
+        } catch (error) {
+            console.error('Error:', error);
+        }
     });
+});
+
 </script>
 
 

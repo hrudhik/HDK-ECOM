@@ -80,10 +80,10 @@ router.post("/checkout/process" , userAuth,cartControllrer.placeorder);
 router.post('/orders/:orderId/product/:productId/cancel',userAuth,cartControllrer.cancelOrder);
 router.post('/orders/:orderId/product/:productId/return',userAuth,cartControllrer.returnOrder);
 router.post("/checkout/apply-coupon", userAuth,cartControllrer.applyCoupon);
+router.post("/checkout/add-address",userAuth,cartControllrer.checkoutaddAddress)
 
 
 
-// router.get('/order-confirmation', userAuth, cartControllrer.getOrderConfirmation);
 
 
 
@@ -95,22 +95,11 @@ router.get('/logout', userController.logout)
 router.get('/productDetails',userAuth,userproductController.productDetails)
 
 // wallet
-// router.get('/wallet',userAuth,userController.getWallet)
 router.post( "/top-up",userAuth,userController.topUpWallet)
-
-//getpayment
-// router.get('/razorpay',(req,res)=>{
-//   res.render('razorPay')
-// })
-
-// Route to create a Razorpay order
-// router.post("/create-order", createOrder);
 
 // Route to verify Razorpay payment
 router.post('/verify-payment', userAuth, paymentController.verifyPayment);
 
-// router.post('/place-order',paymentController.placeOrder)
-// router.post("/verify-payment", cartControllrer.verifyPayment)
 
 
 module.exports = router

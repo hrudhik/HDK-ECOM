@@ -8,10 +8,18 @@ const Order= require("../models/orderSchema");
 
 
 
-exports.renderSalesReportPage = (req, res) => {
+exports.renderSalesReportPage = async(req, res) => {
     try {
       // Render the EJS template for the Sales Report page
+      const order = await Order.find();
+      let totalamount=0;
+      order.forEach((orders)=>{
+        totalamount+=orders.totalAmount
+      })
+
       res.render('salesreport', {
+        order,
+        totalamount,
         title: 'Sales Report', // Pass a title for the page
         salesData: [], // Initially pass an empty array (no data loaded yet)
       });

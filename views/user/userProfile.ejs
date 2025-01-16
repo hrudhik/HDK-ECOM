@@ -295,15 +295,13 @@
                                     <td><%= item.quantity  %></td>
                                     <td><%= order.totalAmount  %></td>
                                     <td>
-                                      <% if (item.status === 'Pending') { %>
+                                      <% if (item.status === 'Pending' ||item.status === 'Shipped' ) { %>
                                         <form action="/orders/<%= order._id %>/product/<%= item.productId?._id %>/cancel" method="POST" style="display:inline;">
                                           <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
                                         </form>
                                        
                                       <% } else if (item.status === 'Cancelled') { %>
                                         <span class="text-danger">Cancelled</span>
-                                      <% } else if (item.status === 'Shipped') { %>
-                                        <span class="text-warning">Shipped</span>
                                       <% } else if (item.status === 'Delivered') { %>
                                         <form action="/orders/<%= order._id %>/product/<%= item.productId?._id %>/return" method="POST" style="display:inline;">
                                           <button type="submit" class="btn btn-danger btn-sm">Retun</button>
