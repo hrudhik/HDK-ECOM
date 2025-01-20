@@ -201,10 +201,10 @@
                                     <div class="clearfix product-price-cover">
                                         <div class="product-price primary-color float-left">
                                             <ins><span class="text-brand">
-                                                    <%=product.salePrice%>
+                                                    ₹<%=product.salePrice%>
                                                 </span></ins>
                                             <ins><span class="old-price font-md ml-15">
-                                                    <%=product.regularPrice%>
+                                                    ₹<%=product.regularPrice%>
                                                 </span></ins>
                                             <% if (product.salePrice < product.regularPrice) { %>
                                                 <span class="save-price font-md color3 ml-15">
@@ -215,6 +215,9 @@
                                                 <% } %>
                                         </div>
                                     </div>
+                                    <%if(quantity<=5){%>
+                                        <h4 class="text-danger">Only <%=quantity%> left hurry!</h4>
+                                    <%}%>        
                                     <div class="bt-1 border-color-1 mt-15 mb-15"></div>
                                     <div class="short-desc mb-30">
                                         <p>
@@ -253,8 +256,10 @@
                                             <button type="submit" class="button button-add-to-cart"
                                                 onclick="addToCart('<%=product._id%>')">Add to
                                                 cart</button>
+                                          
                                             <a aria-label="Add To Wishlist" class="action-btn hover-up"
-                                                href="/whishList"><i class="fi-rs-heart"></i></a>
+                                            onclick="addToWishlist('<%= product._id %>')"                                                                                ><i class="fi-rs-heart"></i></a>
+                                           
                                            
                                         </div>
                                     </div>
@@ -288,6 +293,78 @@
                     </div>
                 </div>
             </div>
+           
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="row mt-60">
+            <div class="col-12">
+                <h3 class="section-title style-1 mb-30">Related products</h3>
+            </div>
+            <div class="col-12">
+                <div class="row related-products">
+                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                        <div class="product-cart-wrap small hover-up">
+                            <%relatedproducts.forEach((related)=>{%>
+                            <div class="product-img-action-wrap">
+                                <div class="product-img product-img-zoom">
+                                    <a href="/productDetails?id=<%= related._id %>" tabindex="0">
+                                        <img class="default-img" src="/uploads/re-image/<%= related.productImage[0] %>" alt="">
+                                        <img class="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt="">
+                                    </a>
+                                </div>
+                                <div class="product-action-1">
+                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
+"><i class="fi-rs-search"></i></a>
+                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" onclick="addToWishlist('<%= related._id %>')" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                </div>
+                                
+                            </div>
+                            <div class="product-content-wrap">
+                                <h2><a href="shop-product-right.html" tabindex="0"><%= related.productName %></a></h2>
+                                <div class="rating-result" title="90%">
+                                    <span>
+                                    </span>
+                                </div>
+                                <div class="product-price">
+                                    <span>₹<%= related.salePrice %> </span>
+                                    <span class="old-price">₹<%= related.regularPrice %> </span>
+                                </div>
+                            </div>
+                            <%})%>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
         </section>
     </main>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -375,6 +452,32 @@ function resetZoom(e) {
             });
         }
     });
+}
+
+
+      
+async function addToWishlist(productId) {
+    try {
+        const response = await fetch('/addTowishlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId }),
+        });
+
+        const data = await response.json();
+        Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: data.success ? 'success' : 'error',
+                title: data.message || (data.success ? 'Added to wishlist' : 'Failed to add to wishlist'),
+                showConfirmButton: false,
+                timer: 3000,
+            });
+    } catch (error) {
+        console.error("Error adding to wishlist:", error);
+    }
 }
 
 

@@ -284,6 +284,7 @@
                              <th>Quantity</th>
                              <th>Total</th>
                              <th>Actions</th>
+                             <th>More Details</th>
                            </tr>
                          </thead>
                          <tbody>
@@ -307,9 +308,12 @@
                                           <button type="submit" class="btn btn-danger btn-sm">Retun</button>
                                         </form>
                                       <% } else if(item.status=== "Return"){ %>
-                                        <span class="text-warning" >Return</span>
+                                        <span class="text-warning" >Returned</span>
                                         <%}%>
                                   </td>
+                                  <td><a href="/invoice?orderId=<%= order._id %>">
+                                    View Details
+                                  </a></td>
                                 </tr>
                             <% }) %>
                         <% }) %>

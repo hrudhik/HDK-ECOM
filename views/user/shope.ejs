@@ -1,6 +1,24 @@
 <%- include("../partials/user/header.ejs") %>
  
-
+<style>
+     .search-bar {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-bar input {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      margin-right: 10px;
+    }
+    .search-bar button {
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+</style>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -11,6 +29,18 @@
         </div>
     </div>
     <section class="mt-50 mb-50">
+        <div class="search-bar">
+            <form method="GET" action="/shop">
+              <input
+                type="text"
+                name="query"
+                placeholder="Search products..."
+                value="<%= typeof query !== 'undefined' ? query : '' %>"
+              />
+              <button type="submit">Search</button>
+            </form>
+          </div>
+      
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
@@ -30,11 +60,31 @@
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a class="active" href="/getFilteredProducts?sort=lowToHigh ">Price low to heigh </a></li>
+                                        <li><a href="/getFilteredProducts?sort=lowToHigh ">Price low to heigh </a></li>
                                         <li><a href="/getFilteredProducts?sort=highToLow">Price heigh to low </a></li>
                                         <li><a href="/getFilteredProducts?sort=aToZ">Product name aA to zZ</a></li>
                                         <li><a href="/getFilteredProducts?sort=zToA">product name zZ to aA</a></li>
                                         <li><a href="/shope">All</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="sort-by-cover mr-10">
+                                <div class="sort-by-product-wrap">
+                                    <div class="sort-by">
+                                        <span><i class="fi-rs-apps"></i>Show:</span>
+                                    </div>
+                                    <div class="sort-by-dropdown-wrap">
+                                        <span> Category<i class="fi-rs-angle-small-down"></i></span>
+                                    </div>
+                                </div>
+                                <div class="sort-by-dropdown">
+
+                                    <ul>
+                                        <li><a  href="/shope ">All</a></li>
+
+                                        <%for(let i=0;i<category.length;i++){%>
+                                        <li><a  href="/categoryfilter?Id=<%=category[i]._id%> "><%=category[i].name%></a></li>
+                                      <%}%>
                                     </ul>
                                 </div>
                             </div>
@@ -49,7 +99,7 @@
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a class="active" href="/shope">All</a></li>
+                                        <li><a href="/shope">All</a></li>
                                         <li><a href="/filterPrice?gt=500&lt=1000">500 - 1000</a></li>
                                         <li><a href="/filterPrice?gt=1000&lt=5000">1000 - 5000</a></li>
                                         <li><a href="/filterPrice?gt=5000&lt=10000">5000 - 10000</a></li>
@@ -72,15 +122,11 @@
                                 </a>
                             </div>
                             <div class="product-action-1">
-                                <a aria-label="Quick view" class="action-btn hover-up" href="#/productDetails?id=<%= products[i]._id %>" data-bs-toggle="modal" >
-                                    <i class="fi-rs-eye"></i>
-                                </a>
-                                <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/addToWishlist?id=<%= products[i]._id %>">
+                                
+                                <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishlist('<%= products[i]._id %>')">
                                     <i class="fi-rs-heart"></i>
                                 </a>
-                                <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html">
-                                    <i class="fi-rs-shuffle"></i>
-                                </a>
+                                
                             </div>
                             <!-- <div class="product-badges product-badges-position product-badges-mrg">
                                 <span class="hot"></span>
@@ -92,7 +138,7 @@
                             </div>
                             <h2><a href="shop-product-right.html"><%= products[i].productName %></a></h2>
                             <div class="rating-result" title="90%">
-                                <span><span>90%</span></span>
+                                <span><span></span></span>
                             </div>
                             <div class="product-price">
                                 <span>₹<%= products[i].salePrice %></span>
@@ -171,6 +217,31 @@ function addToCart(productId) {
             });
         }
     });
+}
+
+      
+async function addToWishlist(productId) {
+    try {
+        const response = await fetch('/addTowishlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId }),
+        });
+
+        const data = await response.json();
+        Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: data.success ? 'success' : 'error',
+                title: data.message || (data.success ? 'Added to wishlist' : 'Failed to add to wishlist'),
+                showConfirmButton: false,
+                timer: 3000,
+            });
+    } catch (error) {
+        console.error("Error adding to wishlist:", error);
+    }
 }
 
 

@@ -51,7 +51,7 @@ router.post('/resendfpdotp',profileController.resendfpdotp);
 router.get('/resetpassword',profileController.loadresetpassword);
 router.post('/newpassword',profileController.newpassword);
 router.get('/loadchangepassword',(req,res)=>{
-  res.render('cangepassword');
+   res.render('cangepassword');
 })
 router.post('/changepassword',profileController.changepassword);
 
@@ -66,6 +66,10 @@ router.get('/deleteAddress',userAuth,profileController.deleteAddress)
 router.get('/shope',userAuth,userController.loadshopePage);
 router.get('/filterPrice',userAuth,userController.filterbyprice)
 router.get('/getFilteredProducts',userAuth,userController.getFilteredProducts)
+router.get('/categoryfilter',userController.categoryfilter)
+//search
+router.get('/shop',userController.searchProducts);
+
 
 //cart
 router.get('/cart',userAuth,cartControllrer.cart)
@@ -81,6 +85,7 @@ router.post('/orders/:orderId/product/:productId/cancel',userAuth,cartControllre
 router.post('/orders/:orderId/product/:productId/return',userAuth,cartControllrer.returnOrder);
 router.post("/checkout/apply-coupon", userAuth,cartControllrer.applyCoupon);
 router.post("/checkout/add-address",userAuth,cartControllrer.checkoutaddAddress)
+router.get('/invoice',userAuth,cartControllrer.invoice)
 
 
 
@@ -99,6 +104,10 @@ router.post( "/top-up",userAuth,userController.topUpWallet)
 
 // Route to verify Razorpay payment
 router.post('/verify-payment', userAuth, paymentController.verifyPayment);
+router.get('/paymentsuccess',paymentController.paymentsuccess)
+router.get('/paymentfailer',(req,res)=>{
+  res.render('paymentfailer')
+})
 
 
 

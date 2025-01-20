@@ -126,7 +126,17 @@
 
             if (response.ok) {
                 const data = await response.json();
-
+                if(data.success==false){
+                    Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: data.message ||  'Product stock is reached please try again later' ,
+                showConfirmButton: true,
+                timer: 3000,
+            });
+                }else{
+            
                 // Update the quantity in the UI
                 document.getElementById(`quantity-${productId}`).textContent = data.newQuantity;
 
@@ -136,6 +146,7 @@
 
                 // Update the cart total
                 document.querySelector('.cart_total_amount strong span').textContent = `₹ ${data.cartTotal}`;
+                }
             } else {
                 console.error('Failed to update quantity');
             }

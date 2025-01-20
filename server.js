@@ -22,12 +22,12 @@ const store = new MongoDBStore({
 })
 
 store.on('error',(error)=>{
-    console.log('Error connecting to mongostore')
+    console.log('Error connecting to mongostore',error)
 })
 
 app.use(session({
     secret: process.env.SESSION_SEACRET,
-    // secret:'mySecret',
+  
     store,
     resave: false,
     saveUninitialized: true,

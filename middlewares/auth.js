@@ -65,9 +65,19 @@ const isLoggedIn = (req, res, next) => {
     next();
 };
 
+const adminAuth=(req,res,next)=>{
+    if(!req.session.admin){
+        res.redirect('/admin/login')
+    }else{
+        next()
+    }
+}
+
+
 module.exports = {
     isAdmin,
     userAuth,
-    isLoggedIn
+    isLoggedIn,
+    adminAuth
 
 }

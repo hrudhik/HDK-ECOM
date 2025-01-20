@@ -6,7 +6,7 @@ const catogaryController=require("../controllers/categoryController");
 const brandController=require("../controllers/brandController");
 const productController=require('../controllers/productController')
 const salesReportController = require("../controllers/salesReportController");
-const { userAuth, isAdmin } = require('../middlewares/auth');
+const { userAuth, adminAuth } = require('../middlewares/auth');
 const {upload} = require('../helpers/multer')
 // const { Admin } = require('mongodb');
 // const multer= require('multer');
@@ -18,21 +18,21 @@ const {upload} = require('../helpers/multer')
 
 router.get('/login', adminController.loadlogin);
 router.post('/admin/login', adminController.login)
-router.get('/',  adminController.loaddashBoard)
+router.get('/',  adminAuth,adminController.loaddashBoard)
 router.get('/pagenotfound', adminController.pagenotfound)
 router.get('/logout', adminController.logout)
 
 // userlisting rouout
-router.get('/users', customerController.customerInfo)
+router.get('/users',adminAuth, customerController.customerInfo)
 //blocke and unblock user rout 
-router.get('/blockCustomer',customerController.customerblocked)
-router.get('/unblockCustomer',customerController.customerUnblocked)
+router.get('/blockCustomer',adminAuth,customerController.customerblocked)
+router.get('/unblockCustomer',adminAuth,customerController.customerUnblocked)
 
 //catogery management routs
-router.get('/catogary',catogaryController.categogtyInfo)
-router.post('/addCatogary',catogaryController.addCatogary)
-router.get('/getCategoryoffer',catogaryController.getCategoryoffer)
-router.post('/addCategoryOffer',catogaryController.addCategoryOffer);
+router.get('/catogary',adminAuth,catogaryController.categogtyInfo)
+router.post('/addCatogary',adminAuth,catogaryController.addCatogary)
+router.get('/getCategoryoffer',adminAuth,catogaryController.getCategoryoffer)
+router.post('/addCategoryOffer',adminAuth,catogaryController.addCategoryOffer);
 
 // router.post('/addCatergoryOffer',adminAuth,catogaryController.addCategoryOffer)
 // router.get('/removeCategoryOffer',catogaryController.removeCategoryOffer)

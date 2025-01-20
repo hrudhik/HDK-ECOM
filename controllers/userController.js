@@ -6,6 +6,7 @@ const Order=require('../models/orderSchema')
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require('bcrypt');
+const mongoose=require('mongoose')
 
 
 
@@ -304,7 +305,7 @@ const loadshopePage = async (req, res) => {
         res.render('shope', {
             user: userData,
             products: products,
-            // category: categorywithIds,
+            category: categoryies,
             brand: brands,
             totalProducts: totalProducts,
             currentPage: page,
@@ -404,6 +405,51 @@ const getFilteredProducts = async (req, res) => {
 
     }
 }
+const categoryfilter= async(req,res)=>{
+    try {
+        const user = req.session.user;
+        const userData = await User.findOne({ _id: user });
+        const brand = await Brand.find({}).lean();
+        const category = await Category.find({ isListed: true });
+        const totalProducts = await Product.countDocuments({
+            isBlocked: false,
+            // category:{$in:categoryIds},
+            quantity: { $gt: 0 },
+        })
+        const categoryId= req.query.Id;
+            const findcategory= await Category.findOne({_id:categoryId});
+
+        const findProduct = await Product.find({
+            category:findcategory,
+            isBlocked: false,
+            quantity: { $gt: 0 }
+        }).lean();
+
+        findProduct.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
+        let ipage = 6
+        let currentPage = parseInt(req.query.page) || 1
+        let startIndex = (currentPage - 1) * ipage
+        let endIndex = startIndex + ipage
+        let totalPages = Math.ceil(findProduct.length / ipage)
+        const currentProduct = findProduct.slice(startIndex, endIndex)
+        req.session.filteredProducts = findProduct
+
+        res.render('shope', {
+            user: userData,
+            products: currentProduct,
+            category: category,
+            totalProducts: totalProducts,
+            brand: brand,
+            totalPages,
+            currentPage
+        })
+    } catch (error) {
+        console.error(error);
+        res.redirect('/pagenotfound')
+
+
+    }
+}
 
 const topUpWallet = async (req, res) => {
     try {
@@ -432,79 +478,6 @@ const topUpWallet = async (req, res) => {
         res.status(500).send("Failed to top up wallet.");
     }
 };
-// const refundToWallet = async (req, res) => {
-//     try {
-//         const { orderId } = req.body; // Get the order ID from the request body
-//         const userId = req.session.user; // Get the logged-in user's ID
-
-//         // Fetch the order and user details
-//         const order = await Order.findById(orderId);
-//         const user = await User.findById(userId);
-
-//         if (!order || !user) {
-//             return res.status(404).json({ error: "Order or User not found." });
-//         }
-
-//         // Refund conditions
-//         if (order.paymentMethod === "COD" && order.status !== "Delivered") {
-//             return res
-//                 .status(400)
-//                 .json({ error: "Refund not allowed for undelivered COD orders." });
-//         }
-
-//         // Refund the amount to the wallet
-//         user.wallet.balance += order.totalAmount; // Add the refunded amount
-//         user.wallet.transactions.push({
-//             type: "credit",
-//             amount: order.totalAmount,
-//             description: `Refund for Order #${orderId}`
-//         });
-
-//         // Save the updated user
-//         await user.save();
-
-//         // Respond with success
-//         res.status(200).json({
-//             message: "Refund processed successfully.",
-//             walletBalance: user.wallet.balance
-//         });
-//     } catch (error) {
-//         console.error("Error processing refund:", error);
-//         res.status(500).json({ error: "Failed to process refund." });
-//     }
-// };
-// const refundToWallet = async (orderId, userId) => {
-//     try {
-//         // Fetch the order and user details
-//         const order = await Order.findById(orderId);
-//         const user = await User.findById(userId);
-
-//         if (!order || !user) {
-//             throw new Error("Order or User not found.");
-//         }
-
-//         // Refund conditions
-//         if (order.paymentMethod === "COD" && order.status !== "Delivered") {
-//             throw new Error("Refund not allowed for undelivered COD orders.");
-//         }
-
-//         // Refund the amount to the wallet
-//         user.wallet.balance += order.totalAmount; // Add the refunded amount
-//         user.wallet.transactions.push({
-//             type: "credit",
-//             amount: order.totalAmount,
-//             description: `Refund for Order #${orderId}`,
-//         });
-
-//         // Save the updated user
-//         await user.save();
-
-//         return { success: true, walletBalance: user.wallet.balance };
-//     } catch (error) {
-//         console.error("Error processing refund:", error);
-//         throw error; // Propagate the error to the calling function
-//     }
-// };
 
 const refundToWallet = async (orderId, userId, amount) => {
     try {
@@ -532,9 +505,46 @@ const refundToWallet = async (orderId, userId, amount) => {
         throw error; // Propagate the error to the calling function
     }
 };
+const searchProducts = async (req, res) => {
+    try {
+        const { query, page = 1, limit = 10 } = req.query; // Default to page 1, limit 10
+        const searchRegex = new RegExp(query, 'i'); // Case-insensitive search
+        const category= await Category.find({isListed:false})
+        const skip = (page - 1) * limit;
 
+        // Fetch products with pagination
+        const products = await Product.find({
+            $or: [
+                { productName: searchRegex },
+                { description: searchRegex }
+            ]
+        })
+            .skip(skip)
+            .limit(parseInt(limit));
 
+        // Get total product count for pagination
+        const totalProducts = await Product.countDocuments({
+            $or: [
+                { productName: searchRegex },
+                { description: searchRegex }
+            ]
+        });
 
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        res.render('shope', {
+            products,
+            category,
+            totalProducts,
+            totalPages,
+            currentPage: parseInt(page),
+            query
+        });
+    } catch (error) {
+        console.error('Error searching products:', error);
+        res.redirect('/pagenotfound');
+    }
+};
 
 module.exports = {
     loadhomepage,
@@ -550,7 +560,9 @@ module.exports = {
     filterbyprice,
     getFilteredProducts,
     topUpWallet,
-    refundToWallet
+    refundToWallet,
+    categoryfilter,
+    searchProducts
     
 
 
