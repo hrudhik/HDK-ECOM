@@ -41,15 +41,15 @@
             <h4>Billing Details</h4>
           </div>
           <form method="post">
-            <!-- <div class="form-group">
+            <div class="form-group">
               <input
                 type="text"
                 required=""
                 name="fname"
-                placeholder="<%=userId.name%>"
-                value="<%=userId.name%>"
+                placeholder="<%=user.name%>"
+                value="<%=user.name%>"
               />
-            </div> -->
+            </div>
 
             <div class="form-group">
               <label for="addressSelect">Select Address</label>
@@ -150,7 +150,7 @@
                         >
                       </h5>
                       <span class="product-qty">x <%= item.quantity %></span>
-                    </td>
+                    </t d>
                     <td>₹<%= item.productId.salePrice %></td>
                     <% }) %>
                   </tr>
@@ -165,6 +165,14 @@
                   <tr>
                     <th>Shipping</th>
                     <td colspan="2"><em>Free Shipping</em></td>
+                  </tr>
+                  <tr>
+                    <th>Coupon Discount</th>
+                    <td colspan="2" class="coupon-discount">
+                      <span class="font-xl text-brand fw-900"
+                        >₹0</span
+                      >
+                    </td>
                   </tr>
                   <tr>
                     <th>Total</th>
@@ -184,6 +192,8 @@
                 <h5>Payment</h5>
               </div>
               <div class="payment_option">
+                <%if(cart.items.reduce((sum, item) => sum +=
+                  item.productId.salePrice * item.quantity, 0) <1000){%>
                 <div style="margin-bottom: 10px">
                   <input
                     id="cod"
@@ -198,10 +208,11 @@
                     "
                     required
                   />
-                  <label for="cod" style="cursor: pointer; font-size: 14px"
-                    >Cash On Delivery</label
-                  >
+                  <label for="cod" style="cursor: pointer; font-size: 14px">Cash On Delivery</label>
                 </div>
+                <%}else{%>
+                  <div style="margin-bottom: 10px"><p class="text-danger">Cash on Delivery is only available for orders under ₹1000. </p></div>
+                  <%}%>
                 <div>
                   <input
                     id="paypal"
@@ -548,6 +559,7 @@
     const addressSelect = document.getElementById("addressSelect");
     const paymentRadios = document.getElementsByName("paymentMethod");
     const couponCodeInput = document.getElementById("couponCodeInput");
+    let orderId
     const cartItems = JSON.parse(<%- JSON.stringify(cartItems) %>);
     const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>';
 
@@ -569,7 +581,16 @@
 
     const selectedPaymentMethod = Array.from(paymentRadios).find(radio => radio.checked)?.value;
     if (!selectedPaymentMethod) {
-      alert("Please select a payment method.");
+      
+      Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'warning',
+                title:"Please select a payment method.",
+                showConfirmButton: false,
+                timer:3000
+               
+            });
       return;
     }
 
@@ -596,9 +617,11 @@
 
       const result = await response.json();
       if (response.ok) {
-        console.log('result',result)
+        // console.log('result',result)
+        orderId=result.orderId
 
         if (selectedPaymentMethod === "Online") {
+          
           console.log("front end paying amount :",result.totalAmount)
           const options = {
             key: "rzp_test_LbJY0AM5BiuG4B",
@@ -609,6 +632,7 @@
             order_id: result.razorpayOrderId,
             handler: async (paymentResponse) => {
       paymentResponse.orderData = orderData; // Attach the original order data
+      paymentResponse.OrderId=orderId
       const verifyResponse = await fetch("/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -616,10 +640,24 @@
       }).then(res => res.json());
 
       if (verifyResponse.success) {
-          alert("Order placed successfully!");
+
+          Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title:"Order placed successfully!",
+                showConfirmButton: false,
+                timer: 3000,
+            });
           window.location.href = "/paymentsuccess";
       } else {
-          alert("Payment verification failed");
+          
+          Swal.fire({
+                icon: 'error' ,
+                title:"Payment verification failed",
+                showConfirmButton: true,
+                
+            });
           window.location.href = "/paymentfailer";
       }
   },
@@ -634,18 +672,45 @@
           const razorpay = new Razorpay(options);
           razorpay.open();
         } else if (selectedPaymentMethod === "COD") {
-          alert("Order placed successfully with COD!");
+         
+          Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success' ,
+                title:"Order placed successfully with COD!",
+                showConfirmButton: false,
+                timer: 3000,
+            });
           window.location.href = "/userprofile";
         }else if(selectedPaymentMethod === "Wallet"){
-          alert("Order placed successfully with Wallet Money!");
+          
+          Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title:"Order Placed successfully with Wallet Money ",
+                showConfirmButton: false,
+                timer: 3000,
+            });
           window.location.href = "/paymentsuccess";
         }
       } else {
-        alert(result.message || "Failed to place order. Please try again.");
+        Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: data.success ? 'success' : 'error',
+                title: result.message || "Failed to place order. Please try again.",
+                showConfirmButton: false,
+                timer: 3000,
+            });
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("An error occurred while placing your order. Please try again.");
+      Swal.fire({
+                icon: 'error',
+                title:"An error occurred while placing your order. Please try again.",
+                showConfirmButton: true,
+                });
     }
   });
 
@@ -655,6 +720,7 @@
     const couponCodeInput = document.getElementById("couponCodeInput");
     const couponMessage = document.getElementById("couponMessage");
     const totalElement = document.querySelector(".product-subtotal span");
+    const couponfinal= document.querySelector('.coupon-discount span')
     const originalTotal = parseFloat(totalElement.textContent.replace("₹", "").trim());
     const totalAmount = '<%= cart.items.reduce((sum, item) => sum + item.productId.salePrice * item.quantity, 0) %>';
 
@@ -681,6 +747,7 @@
         if (response.ok) {
           discountedTotal = originalTotal - result.discountAmount;
           totalElement.textContent = `₹ ${discountedTotal}`;
+          couponfinal.textContent=`₹${result.discountAmount}`
           couponMessage.textContent = "Coupon applied successfully!";
           couponMessage.style.color = "green";
 
@@ -702,6 +769,7 @@
     removeCouponBtn.addEventListener("click", () => {
       discountedTotal = originalTotal;
       totalElement.textContent = `₹ ${originalTotal}`;
+      couponfinal.textContent=`₹0`
       couponMessage.textContent = "";
 
       // Toggle buttons

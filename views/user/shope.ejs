@@ -30,7 +30,7 @@
     </div>
     <section class="mt-50 mb-50">
         <div class="search-bar">
-            <form method="GET" action="/shop">
+            <form method="GET" action="/search">
               <input
                 type="text"
                 name="query"
@@ -52,18 +52,22 @@
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Show:</span>
+                                        <span><i class="fi-rs-apps"></i>Sort :</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
-                                        <span> filter <i class="fi-rs-angle-small-down"></i></span>
+                                        <span>Options <i class="fi-rs-angle-small-down"></i></span>
                                     </div>
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a href="/getFilteredProducts?sort=lowToHigh ">Price low to heigh </a></li>
-                                        <li><a href="/getFilteredProducts?sort=highToLow">Price heigh to low </a></li>
-                                        <li><a href="/getFilteredProducts?sort=aToZ">Product name aA to zZ</a></li>
-                                        <li><a href="/getFilteredProducts?sort=zToA">product name zZ to aA</a></li>
+                                       
+                                        <li><a href="/shop?sort=lowToHigh<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">Price low to heigh</a></li>
+
+                                       
+                                        <li><a href="/shop?sort=highToLow<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">Price heigh to low</a></li>
+
+                                        <li><a href="/shop?sort=aToZ<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">aA to zZ</a></li>
+                                        <li><a href="/shop?sort=ZToa<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">zZ to aA</a></li>
                                         <li><a href="/shope">All</a></li>
                                     </ul>
                                 </div>
@@ -71,7 +75,7 @@
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Show:</span>
+                                        <span><i class="fi-rs-apps"></i>Fillter By :</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
                                         <span> Category<i class="fi-rs-angle-small-down"></i></span>
@@ -82,16 +86,19 @@
                                     <ul>
                                         <li><a  href="/shope ">All</a></li>
 
+                                        
                                         <%for(let i=0;i<category.length;i++){%>
-                                        <li><a  href="/categoryfilter?Id=<%=category[i]._id%> "><%=category[i].name%></a></li>
-                                      <%}%>
+                                        
+                                        <li> <a href="/shop?category=<%= category[i]._id %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>"><%=category[i].name%></a></li>
+                                         
+                                         <%}%>
                                     </ul>
                                 </div>
                             </div>
                             <div class="sort-by-cover">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
+                                        <span><i class="fi-rs-apps-sort"></i>Fillter By :</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
                                         <span> Price <i class="fi-rs-angle-small-down"></i></span>
@@ -100,11 +107,12 @@
                                 <div class="sort-by-dropdown">
                                     <ul>
                                         <li><a href="/shope">All</a></li>
-                                        <li><a href="/filterPrice?gt=500&lt=1000">500 - 1000</a></li>
-                                        <li><a href="/filterPrice?gt=1000&lt=5000">1000 - 5000</a></li>
-                                        <li><a href="/filterPrice?gt=5000&lt=10000">5000 - 10000</a></li>
-                                        <li><a href="/filterPrice?gt=10000">above 10000</a></li>
+                                        <li> <a href="/shop?priceRange=500-1000&category=<%= "" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">500-1000</a></li>
+                                        <li> <a href="/shop?priceRange=1000-5000&category=<%="" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">1000-5000</a></li>
+                                        <li> <a href="/shop?priceRange=5000-10000&category=<%= "" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">5000-10000</a></li>
+                                        <li> <a href="/shop?priceRange=10000&category=<%="" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>"></a>10000</li>
                                     </ul>
+                                    
                                 </div>
                             </div>
                         </div>

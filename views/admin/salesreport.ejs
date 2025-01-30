@@ -4,42 +4,51 @@
   /* General Styles */
   body {
     font-family: 'Arial', sans-serif;
+    background-color: #f9fafb;
+    color: #333;
     margin: 0;
     padding: 0;
-    background-color: #f4f5f7;
-    color: #333;
   }
 
   h1 {
     text-align: center;
-    margin-top: 20px;
+    margin: 20px 0;
     font-size: 2.5rem;
-    color: #2c3e50;
+    color: #34495e;
   }
 
   .filters {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     margin: 20px auto;
     flex-wrap: wrap;
   }
 
-  .filters select,
-  .filters input,
-  .filters button {
-    padding: 10px 15px;
+  .filters form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filters select {
+    padding: 10px;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
     outline: none;
+    background-color: #fff;
+    cursor: pointer;
   }
 
   .filters button {
-    background-color: #3498db;
-    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
     border: none;
+    background-color: #3498db;
+    color: #fff;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
@@ -48,21 +57,31 @@
     background-color: #1d78c2;
   }
 
+  p {
+    text-align: center;
+    font-size: 1.2rem;
+    margin: 20px 0;
+    color: #2c3e50;
+  }
+
   table {
     width: 90%;
     margin: 20px auto;
     border-collapse: collapse;
-    background-color: white;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-radius: 8px;
   }
 
   table thead {
     background-color: #3498db;
-    color: white;
+    color: #fff;
   }
 
   table thead th {
-    padding: 12px;
+    padding: 15px;
+    font-size: 1rem;
     text-align: left;
   }
 
@@ -76,66 +95,111 @@
 
   table tbody td {
     padding: 12px;
+    font-size: 0.9rem;
+    color: #34495e;
   }
 
-  .download-buttons {
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px auto;
+  }
+
+  .pagination a, .pagination span {
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: #3498db;
+    border: 1px solid #3498db;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .pagination a:hover {
+    background-color: #3498db;
+    color: #fff;
+  }
+
+  .pagination .active {
+    background-color: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
+
+  .downloads {
+    text-align: center;
+    margin: 20px 0;
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin: 20px 0;
   }
 
-  .download-buttons button {
+  .downloads a {
     padding: 10px 20px;
     font-size: 1rem;
+    text-decoration: none;
     border: none;
     border-radius: 5px;
+    color: #fff;
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
 
-  #downloadPdf {
+  .downloads a[href*='pdf'] {
     background-color: #e74c3c;
-    color: white;
   }
 
-  #downloadPdf:hover {
+  .downloads a[href*='pdf']:hover {
     background-color: #c0392b;
   }
 
-  #downloadExcel {
+  .downloads a[href*='excel'] {
     background-color: #27ae60;
-    color: white;
   }
 
-  #downloadExcel:hover {
+  .downloads a[href*='excel']:hover {
     background-color: #1e8449;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2rem;
+    }
+
+    table {
+      font-size: 0.85rem;
+    }
+
+    .filters select, .filters button {
+      font-size: 0.9rem;
+    }
   }
 </style>
 
 <h1>Sales Report</h1>
 
 <div class="filters">
-  <select id="filter">
-    <option value="today">Today</option>
-    <option value="weekly">Weekly</option>
-    <option value="monthly">Monthly</option>
-    <option value="yearly">Yearly</option>
-    <option value="specific">Specific Date</option>
-  </select>
-  <input type="date" id="startDate" style="display:none;">
-  <input type="date" id="endDate" style="display:none;">
-  <button id="generateReport">Generate Report</button>
-</div>
-<div id="totalOrders" style="text-align: center; font-size: 1.2rem; margin-top: 20px; color: #2c3e50;">
-  Total Orders: <span id="orderCount"><%=order.length%></span>
-</div>
-<div id="totalOrders" style="text-align: center; font-size: 1.2rem; margin-top: 20px; color: #2c3e50;">
-  Total Revanue: <span id="orderCount"><%=totalamount%></span>
+  <form action="/admin/sales-report/filter" method="GET">
+    <select name="filter" id="filter">
+      <% let filter%>
+      <option value="today" <%= filter === "today" ? "selected" : "" %>>Today</option>
+      <option value="weekly" <%= filter === "weekly" ? "selected" : "" %>>Weekly</option>
+      <option value="monthly" <%= filter === "monthly" ? "selected" : "" %>>Monthly</option>
+      <option value="yearly" <%= filter === "yearly" ? "selected" : "" %>>Yearly</option>
+      <option value="specific" <%= filter === "specific" ? "selected" : "" %>>Specific Date</option>
+    </select>
+    <input type="date" id="startDate" name="startDate" >
+  <input type="date" id="endDate" name="endDate" >
+    
+    <button type="submit">Filter</button>
+  </form>
 </div>
 
+<p>Total Revenue: ₹<%= totalRevenue %></p>
 
-<table id="salesTable" class="table">
+<table>
   <thead>
     <tr>
       <th>Order ID</th>
@@ -145,18 +209,38 @@
     </tr>
   </thead>
   <tbody>
-    <!-- Data will be populated dynamically -->
+    <% orders.forEach(order => { %>
+      <tr>
+        <td><%= order._id %></td>
+        <td><%= order.userId.name %></td>
+        <td>₹<%= order.totalAmount %></td>
+        <td><%= order.status %></td>
+      </tr>
+    <% }) %>
   </tbody>
 </table>
 
-<div class="download-buttons">
-  <button id="downloadPdf">Download PDF</button>
-  <button id="downloadExcel">Download Excel</button>
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="?page=<%= currentPage - 1 %>">Previous</a>
+  <% } %>
+  <% for (let i = 1; i <= totalPages; i++) { %>
+    <a href="?page=<%= i %>" <%= currentPage === i ? "class='active'" : "" %>><%= i %></a>
+  <% } %>
+  <% if (currentPage < totalPages) { %>
+    <a href="?page=<%= currentPage + 1 %>">Next</a>
+  <% } %>
+</div>
+
+<div class="downloads">
+  <a href="/admin/sales-report/pdf?filter=<%= filter %>">Download PDF</a>
+  <a href="/admin/sales-report/excel?filter=<%= filter %>">Download Excel</a>
 </div>
 
 <%- include("../partials/admin/footer.ejs") %>
 
-<script>
+
+<!-- <script>
   const filter = document.getElementById("filter");
   const startDate = document.getElementById("startDate");
   const endDate = document.getElementById("endDate");
@@ -248,4 +332,4 @@ function getSalesDataFromTable() {
   return salesData;
 }
 
-</script>
+</script> -->

@@ -47,7 +47,7 @@ const login = async(req,res)=>{
 const loaddashBoard= async (req,res)=>{
     if(req.session.admin){
         try {
-            res.render('dashboard');
+            res.render('admindashboard');
         } catch  {
             res.redirect('/pagenotfound');
             
@@ -149,7 +149,7 @@ const categoryserch= async (req, res) => {
 const getOrderDetails = async (req, res) => {
     try {
         const { orderId } = req.params;
-        console.log(orderId);
+        // console.log(orderId);
         
         const order = await Order.findById(orderId).populate("userId").populate("items.productId");
         if (!order) {
@@ -168,7 +168,7 @@ const updateOrderStatus = async (req, res) => {
         const { status} = req.body;  // New status from the form
         
 
-        if (!["Pending", "Shipped", "Delivered","Return", "Canceled"].includes(status)) {
+        if (!["Pending", "Shipped", "Delivered","Return", "Cancelled"].includes(status)) {
             return res.status(400).json({ error: "Invalid status" });
         }
 
@@ -183,6 +183,7 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ error: "Product not found in this order" });
         }
         product.status = status;
+        order.paymentstatus="Paid"
         await order.save();
 
         res.redirect(`/admin/orders/${orderId}`);  // Redirect to the order details page
@@ -191,23 +192,6 @@ const updateOrderStatus = async (req, res) => {
         res.status(500).json({ error: "Failed to update order status" });
     }
 };
-// const updateOrderStatus = async (req, res) => {
-//     try {
-//         const { orderId } = req.params;
-//         const { status } = req.body;
-
-//         const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
-
-//         if (!order) {
-//             return res.status(404).json({ error: "Order not found" });
-//         }
-
-//         res.redirect(`/admin/orders/${orderId}`);
-//     } catch (error) {
-//         console.error("Error updating order status:", error.message);
-//         res.status(500).json({ error: "Failed to update order status" });
-//     }
-// };
 
 const getAllProducts = async (req, res) => {
     try {
@@ -306,34 +290,6 @@ const listCoupons = async(req,res)=>{
     }
 }
 
-// const createCoupons=async(req,res)=>{
-//     try {
-//         const {code,discountPercentage,startDate,endDate}=req.body;
-//         if(new Date(startDate)>=new Date(endDate)){
-//             res.status(500).send("Start date must be before the end date.")
-
-//         }
-
-//         const { filename } = req.file;
-//         // const image= `/uploads/re-image/${filename}`;
-
-//         // if(req.file){
-//         //     // let path=req.filename
-//         //     image=`/public/uploads/re-image/${req.filename}`;
-//         // }
-//         console.log(filename)
-//         const newcoupon=  new Coupon({code,discountPercentage,startDate,endDate,couponImage:filename});
-//         await newcoupon.save();
-
-//         res.redirect("/admin/listcoupen");
-
-//     } catch (error) {
-//         console.log(error);
-        
-//         res.status(500).redirect('/admin/pagenotfound');
-        
-//     }
-// }
 
 const createCoupons = async (req, res) => {
     try {
@@ -362,18 +318,7 @@ const createCoupons = async (req, res) => {
 };
 
 
-// const deletCoupens=async(req,res)=>{
-//     try {
-//         const {couponId}=req.params;
-//         await Coupon.findByIdAndDelete(couponId);
-//         res.redirect('/admin/listcoupen')
 
-//     } catch (error) {
-//      console.log(error);
-//      res.status(500).redirect('/admin/pagenotfound')
-        
-//     }
-// }
 const deletCoupens = async (req, res) => {
     try {
         const { id } = req.params;

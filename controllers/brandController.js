@@ -129,7 +129,7 @@ const deleteBrand= async(req,res)=>{
             return res.status(400).redirect('/pagenotfound');
         }
         await Brand.deleteOne({_id:id});
-        res.redirect('/admin/brads');
+        res.redirect('/admin/brands');
     } catch (error) {
         console.error(error);
         res.status(500).redirect('/pagenotfound')

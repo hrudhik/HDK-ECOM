@@ -134,28 +134,6 @@ const allProduct = async (req, res) => {
 };
 
 
-// const allProduct = async function (req, res) {
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = 4;
-//     const skip = (page - 1) * limit;
-
-//     try {
-//         const totalProducts = await Product.countDocuments();
-//         const products = await Product.find()
-//             .populate('category')
-//             .sort({createdAt:-1})
-//             .skip(skip)
-//             .limit(limit);
-
-//         const totalPages = Math.ceil(totalProducts / limit);
-
-//         return res.render('product', { products, currentPage: page, totalPages });
-//     } catch (error) {
-//         console.log(error);
-//         return res.redirect('/pagenotfound')
-//     }
-// };
-
 const blockProduct = async (req, res) => {
     try {
         let id = req.query.id;
@@ -189,62 +167,7 @@ const editProduct = async (req, res) => {
     }
 };
 
-// const updateProduct=async (req,res)=>{
-//     try {
-//         const id = req.params.id;
-//         console.log("id",id)
-//         const product = await Product.findOne({_id:id});
-//         console.log("product")
 
-//         const data = req.body;
-//         console.log(data)
-//         const existingProduct= await Product.findOne({
-//             productName:data.productName,
-//             _id:{$ne:id}
-//         })
-//         console.log(existingProduct)
-
-//         if(existingProduct){
-//             return res.status(400).json({error:"Product is allready exist, Please try again with another name "})
-//         }
-
-//         console.log("exist")
-
-//         const image=[];
-//         console.log("image")
-
-//         if(req.files && req.files.length>0){
-//             for(let i=0;i<req.files.length;i++){
-//                 image.push(req.files[i].filename)
-//             }
-
-//         }
-
-//         const updateFields={
-//             productName:data.productName,
-//             description:data.description,
-//             brand:data.brand,
-//             category:product.category,
-//             regularPrice:product.regularPrice,
-//             salePrice:data.salePrice,
-//             quantity:data.quantity,
-//             size:data.size,
-//             color:data.color
-//         }
-//         console.log("hai")
-//         if(req.files.length>0){
-//             updateFields.$push={productImage:{$each:image}}
-//         }
-//         console.log("hello")
-//         await Product.findByIdAndUpdate(id,updateFields,{new:true});
-//         res.redirect('/admin/products')
-
-//     } catch (error) {
-//         // console.error(error);
-//         res.redirect('/pagenotfound')
-
-//     }
-// }
 
 const updateProduct = async (req, res) => {
     try {
@@ -261,7 +184,7 @@ const updateProduct = async (req, res) => {
         }
 
         const data = req.body;
-        // console.log("Request body data:", data);
+        console.log("Request body data:", data);
 
         const existingProduct = await Product.findOne({
             productName: data.productName,
@@ -284,7 +207,7 @@ const updateProduct = async (req, res) => {
             productName: data.productName,
             description: data.description,
             brand: data.brand,
-            category: product.category,
+            category: data.category,
             regularPrice: data.regularPrice,
             salePrice: data.salePrice,
             quantity: data.quantity,
@@ -308,102 +231,7 @@ const updateProduct = async (req, res) => {
     }
 };
 
-// const deleteoneimage = async (req, res) => {
-//     try {
-//         const { imageNameToServer, productIdToServer } = req.body;
-//         const product = await Product.findByIdAndUpdate(productIdToServer, {
-//             $pull: { productImage: imageNameToServer },
-//         });
-//         const imagePath = path.join(
-//             "public",
-//             "uplods",
-//             "re-image",
-//             imageNameToServer
-//         );
-//         if (fs.existsSync(imagePath)) {
-//             await fs.unlinkSync(imagePath);
-//             console.log(`Image ${imageNameToServer}delete successfully `);
-//         } else {
-//             console.log(`Image ${imageNameToServer}not found `);
-//         }
-//         res.send({ status: true });
-//     } catch (error) {
-//         console.error(error);
 
-//         res.redirect("/pagenotfound");
-//     }
-// };
-
-// const fs = require('fs');
-// const path = require('path');
-// const Product = require('./models/Product'); // Adjust path to your Product model
-// const deleteoneimage = async (req, res) => {
-//     try {
-//         const { imageNameToServer, productIdToServer } = req.body;
-
-//         // Validate request body
-//         if (!imageNameToServer || !productIdToServer) {
-//             return res.status(400).send({ status: false, message: "Invalid data" });
-//         }
-
-//         // Update product in the database
-//         const product = await Product.findByIdAndUpdate(productIdToServer, {
-//             $pull: { productImage: imageNameToServer },
-//         });
-
-//         if (!product) {
-//             return res.status(404).send({ status: false, message: "Product not found" });
-//         }
-
-//         // Build the file path
-//         const imagePath = path.join(__dirname, "public", "uploads", "product-images", imageNameToServer);
-
-//         // Delete the image file
-//         if (fs.existsSync(imagePath)) {
-//             fs.unlinkSync(imagePath); // Synchronous file deletion
-//             console.log(`Image ${imageNameToServer} deleted successfully.`);
-//         } else {
-//             console.log(`Image ${imageNameToServer} not found.`);
-//         }
-
-//         res.send({ status: true });
-//     } catch (error) {
-//         console.error("Error deleting image:", error);
-//         res.status(500).send({ status: false, message: "Internal Server Error" });
-//     }
-// };
-// const fs = require('fs');
-// const path = require('path');
-
-// const deleteoneimage= async (req, res) => {
-//   const {imgname,id}= req.params
-//   console.log(imgname)
-//     console.log('id',id)
-
-//   try {
-//     // Remove the image from the database using $pull
-//     const product = await Product.findByIdAndUpdate(
-//       productId,
-//       { $pull: { images: imageName } },
-//       { new: true } // Return the updated document
-//     );
-
-//     if (!product) {
-//       return res.status(404).json({ message: 'Product not found!', type: 'error' });
-//     }
-
-//     // Delete the image file from the server (if stored locally)
-//     const imagePath = path.join(__dirname, 'public/uploads/', imageName);
-//     if (fs.existsSync(imagePath)) {
-//       fs.unlinkSync(imagePath);
-//     }
-
-//     res.json({ message: 'Image deleted successfully!', type: 'success' });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Something went wrong!', type: 'error' });
-//   }
-// };
 const deleteoneimage = async (req, res) => {
     try {
         const { imageNameToServer, productIdToServer } = req.body;

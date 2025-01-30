@@ -130,12 +130,15 @@
                 </tbody>
             </table>
             <p class="total">Total Amount:<%=order.totalAmount%></p>
-        </div>
             <div style="text-align: center;">
-                <a class="btn" id="downloadPdf" onclick="downloadPDF()">Download Invoice</a>
-
-            </div>
-        </div>
+                <a
+                  class="btn"
+                  href="/download-invoice?orderId=<%= order._id %>"
+                  target="_blank"
+                >
+                  Download Invoice
+                </a>
+              </div>
     </main>
     
 
@@ -143,34 +146,5 @@
     <%- include("../partials/user/footer.ejs") %>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <script>
-        async function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-    
-            // Select the element to convert
-            const element = document.querySelector('.dowlodingpdf');
-    
-            // Create a new jsPDF instance
-            const pdf = new jsPDF();
-    
-            // Use the html() method to render the HTML content into the PDF
-            pdf.html(element, {
-                callback: (doc) => {
-                    // Save the PDF with a custom filename
-                    doc.save('Invoice.pdf');
-                },
-                x: 10,
-                y: 10,
-                html2canvas: {
-                    scale: 0.3, // Adjust to fit content better
-                },
-            });
-        }
-    </script>
-    
-  
 
 

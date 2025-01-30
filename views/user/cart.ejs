@@ -21,18 +21,19 @@
             </thead>
             <tbody>
                 <% if (cart.items && cart.items.length > 0) { %>
-                    <% cart.items.forEach(item => { %>
+                    <% cart.items.filter(item => !item.productId.isBlocked && item.productId.quantity>0).forEach(item => { %>
+                        
                         <tr>
-                            <!-- Product Image -->
+                            
                             <td>
                                 <img 
                                     src="/uploads/re-image/<%=item.productId.productImage[0]%>"
                                     alt="<%= item.productId.productName %>" 
                                     width="50" height="50">
                             </td>
-                            <!-- Product Name -->
+                            
                             <td><%= item.productId.productName %></td>
-                            <!-- Quantity Update -->
+                            
                             <td>
                                 <button 
                                     data-id="<%= item.productId._id %>" 
@@ -48,16 +49,18 @@
                             </td>
                             
                             
-                            <!-- Price -->
+                            
                             <td>₹<%= item.productId.salePrice %></td>
-                            <!-- Total -->
+                            
                             <td id="tabletotal">₹<%= item.productId.salePrice * item.quantity %></td>
-                            <!-- Remove -->
+                            
                             <td>
                                 <a href="/remove/<%=item.productId._id %>" class="btn btn-sm btn-danger">Remove</a>
                             </td>
                             
                         </tr>
+                      
+
                     <% }); %>
                 <% } else { %>
                     <tr>
@@ -75,10 +78,15 @@
                 <h4>Cart Totals</h4>
                 <table class="table">
                     <tbody>
+                      
                         <tr>
                             <td class="cart_total_label">Cart Subtotal</td>
-                            <td id="checkouttotal"   class="cart_total_amount">
-                                <span class="font-lg fw-900 text-brand">₹ <%= cart.items.reduce((sum, item) => sum += item.productId.salePrice * item.quantity, 0) %></span>
+                            <td id="checkouttotal" class="cart_total_amount">
+                                <span class="font-lg fw-900 text-brand">₹ 
+                                    <%= cart.items
+                                        .filter(item => !item.productId.isBlocked && item.productId.quantity>0)
+                                        .reduce((sum, item) => sum += item.productId.salePrice * item.quantity, 0) %>
+                                </span>
                             </td>
                         </tr>
                         <tr>
@@ -88,18 +96,33 @@
                         <tr>
                             <td class="cart_total_label">Total</td>
                             <td class="cart_total_amount">
-                                <strong><span class="font-xl fw-900 text-brand">₹ <%= cart.items.reduce((sum, item) => sum += item.productId.salePrice * item.quantity, 0) %></span></strong>
+                                <strong>
+                                    <span class="font-xl fw-900 text-brand">₹ 
+                                        <%= cart.items
+                                            .filter(item => !item.productId.isBlocked && item.productId.quantity>0) // Exclude blocked products
+                                            .reduce((sum, item) => sum += item.productId.salePrice * item.quantity, 0) %>
+                                    </span>
+                                </strong>
                             </td>
                         </tr>
+                        
                     </tbody>
                 </table>
             </div>
         </div>
 
         <!-- Action Buttons -->
+         <p class="text-danger"><%=errormessage%></p>
         <div class="mt-4">
             <a href="/shope" class="btn btn-outline-success">Continue Shopping</a>
-            <a href="/getcheckout" class="btn btn-primary">Proceed to Checkout</a>
+            <%if (errormessage){%>
+                
+            <a href="/cart" class="btn btn-danger">Proceed to Checkout</a>
+            <%}else{%>
+                <%if(cart.items.length!=0){%>
+                <a href="/getcheckout" class="btn btn-primary">Proceed to Checkout</a>
+                <%}%>
+                <%}%>
         </div>
     </div>
 

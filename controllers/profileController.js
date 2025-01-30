@@ -15,14 +15,12 @@ const userProfile=async (req,res)=>{
         const userId=req.session.user;
         const userDate=await User.findById(userId);
         const addresData=await Address.findOne({userId:userId});
-        const orderDetails= await Order.find({userId}).sort({createdAt:-1}).populate("items.productId")
 
         // console.log(orderDetails)
 
         res.render('userProfile',{
             user:userDate,
             userAddress:addresData,
-            orderDetails:orderDetails,
             walletBalance:userDate.wallet.balance,
             walletTransactions :userDate.wallet.transactions
        

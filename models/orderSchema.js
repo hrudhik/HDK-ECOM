@@ -63,6 +63,7 @@ const orderSchema = new mongoose.Schema({
                 enum: ["Pending", "Shipped", "Delivered","Return", "Cancelled"],
                 default: "Pending", 
             },
+            returnReason:String
         },
     ],
     shippingAddress: {
@@ -90,6 +91,11 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    paymentstatus:{
+        type:String,
+        enum:["Pending","Paid"],
+        default:"Pending",
+    }
 });
 
 module.exports = mongoose.model("Order", orderSchema);

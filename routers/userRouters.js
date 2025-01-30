@@ -64,11 +64,10 @@ router.get('/deleteAddress',userAuth,profileController.deleteAddress)
 
 //shope page
 router.get('/shope',userAuth,userController.loadshopePage);
-router.get('/filterPrice',userAuth,userController.filterbyprice)
-router.get('/getFilteredProducts',userAuth,userController.getFilteredProducts)
-router.get('/categoryfilter',userController.categoryfilter)
+
+router.get('/shop',userController.categoryfilter)
 //search
-router.get('/shop',userController.searchProducts);
+router.get('/search',userController.searchProducts);
 
 
 //cart
@@ -86,6 +85,12 @@ router.post('/orders/:orderId/product/:productId/return',userAuth,cartControllre
 router.post("/checkout/apply-coupon", userAuth,cartControllrer.applyCoupon);
 router.post("/checkout/add-address",userAuth,cartControllrer.checkoutaddAddress)
 router.get('/invoice',userAuth,cartControllrer.invoice)
+router.get("/download-invoice",userAuth,cartControllrer.generateInvoicePdf);
+
+
+// user profile aditional routes
+
+router.get('/orderdetails',userAuth,cartControllrer.getOrderList)
 
 
 
@@ -104,10 +109,14 @@ router.post( "/top-up",userAuth,userController.topUpWallet)
 
 // Route to verify Razorpay payment
 router.post('/verify-payment', userAuth, paymentController.verifyPayment);
-router.get('/paymentsuccess',paymentController.paymentsuccess)
-router.get('/paymentfailer',(req,res)=>{
+router.get('/paymentsuccess',userAuth,paymentController.paymentsuccess)
+router.get('/paymentfailer',userAuth,(req,res)=>{
   res.render('paymentfailer')
 })
+router.post('/retrypayment',userAuth,paymentController.retrypayment)
+router.post('/update-payment-status',userAuth,paymentController.updatepaymentstatus)
+
+ 
 
 
 

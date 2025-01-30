@@ -1,0 +1,97 @@
+<%- include("../partials/admin/header.ejs") %>
+<head>
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-3">Sales Report</h2>
+            <select id="filter" class="p-2 border rounded-md mb-4">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+                <option value="weekly">Weekly</option>
+            </select>
+            <canvas id="salesChart" class="w-full"></canvas>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3">Best Selling Products</h2>
+                <canvas id="bestSellingProductsChart"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3">Best Selling Brands</h2>
+                <canvas id="bestSellingBrandsChart"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-3">Best Selling Categories</h2>
+                <canvas id="bestSellingCategoriesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData(url) {
+            const res = await fetch(url);
+            return res.json();
+        }
+
+        async function loadSalesChart(filter = 'monthly') {
+            const data = await fetchData(`/admin/sales-report?filter=${filter}`);
+            const labels = data.map(item => item._id);
+            const values = data.map(item => item.totalSales);
+            
+            new Chart(document.getElementById('salesChart'), {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Total Sales', data: values, borderColor: 'blue', fill: false }] }
+            });
+        }
+
+        async function loadBestSellingProducts() {
+            const data = await fetchData('/admin/best-selling-products');
+            const labels = data.map(item => item.productName);
+            const values = data.map(item => item.totalSold);
+            
+            new Chart(document.getElementById('bestSellingProductsChart'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'red' }] }
+            });
+        }
+
+        async function loadBestSellingBrands() {
+            const data = await fetchData('/admin/best-selling-brands');
+            const labels = data.map(item => item._id);
+            const values = data.map(item => item.totalSold);
+            
+            new Chart(document.getElementById('bestSellingBrandsChart'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'green' }] }
+            });
+        }
+
+        async function loadBestSellingCategories() {
+            const data = await fetchData('/admin/best-selling-categories');
+            const labels = data.map(item => item.categoryName);
+            const values = data.map(item => item.totalSold);
+            
+            new Chart(document.getElementById('bestSellingCategoriesChart'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'blue' }] }
+            });
+        }
+
+        document.getElementById('filter').addEventListener('change', (e) => {
+            loadSalesChart(e.target.value);
+        });
+
+        loadSalesChart();
+        loadBestSellingProducts();
+        loadBestSellingBrands();
+        loadBestSellingCategories();
+    </script>
+</body>         
+<%- include("../partials/admin/footer.ejs") %>
