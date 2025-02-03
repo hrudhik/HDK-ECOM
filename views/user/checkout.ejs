@@ -76,14 +76,14 @@
             >
               Add Address
             </button>
-            <button
+            <!-- <button
               type="button"
               class="btn btn-secondary mt-3"
               data-bs-toggle="modal"
               data-bs-target="#editAddressModal"
             >
               Edit Address
-            </button>
+            </button> -->
           </form>
         </div>
 
@@ -505,53 +505,61 @@
         }
 
 
-     document.getElementById("addAddressForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const addressData = Object.fromEntries(formData.entries());
+        document.getElementById("addAddressForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const addressData = Object.fromEntries(formData.entries());
 
-      try {
+    try {
         const response = await fetch("/checkout/add-address", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(addressData),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(addressData),
         });
 
         const result = await response.json();
+
         if (response.ok) {
-            const updatedAddresses = result.addresses
+            // Use result.addresses OR an empty array if not available
+            const updatedAddresses = result.addresses || [];
+
+            // Update the dropdown dynamically
             reloadAddressDropdown(updatedAddresses);
 
+            // Close the Bootstrap Modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addAddressModal'));
-      modal.hide();
-//           Swal.fire({
-//                   toast: true,
-//                   position: 'top-end',
-//                   icon:'success',
-//                   title:'Address added success',
-//                   showConfirmButton: true,
-//                   timer: 3000,
-//                    });
-//           location.reload();
+            modal.hide();
+
+            // Show success message (SweetAlert or alert)
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Address added successfully!',
+                showConfirmButton: false,
+                timer: 2000
+            });
+
         } else {
-          alert(result.message || "Failed to add address.");
+            alert(result.message || "Failed to add address.");
         }
-      } catch (error) {
+    } catch (error) {
         console.error("Error adding address:", error);
         alert("An error occurred while adding the address.");
-      }
-    });
-    
-    function reloadAddressDropdown(addresses) {
-  const addressSelect = document.getElementById('addressSelect');
-  addressSelect.innerHTML = ''; // Clear existing options
+    }
+});
 
-  addresses.forEach((address) => {
-    const option = document.createElement('option');
-    option.value = address._id;
-    option.textContent = `${address.name}, ${address.city}, ${address.state}, ${address.pincode}, ${address.landMark}, ${address.phone}, ${address.altPhone}`;
-    addressSelect.appendChild(option);
-  });
+// Function to Reload Address Dropdown
+function reloadAddressDropdown(addresses) {
+    const addressSelect = document.getElementById('addressSelect');
+    addressSelect.innerHTML = ''; // Clear existing options
+
+    addresses.forEach((address) => {
+        const option = document.createElement('option');
+        option.value = address._id;
+        option.textContent = `${address.name}, ${address.city}, ${address.state}, ${address.pincode}, ${address.landMark}, ${address.phone}, ${address.altPhone}`;
+        addressSelect.appendChild(option);
+    });
 }
 
 

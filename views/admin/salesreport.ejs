@@ -177,13 +177,12 @@
     }
   }
 </style>
-
 <h1>Sales Report</h1>
 
 <div class="filters">
   <form action="/admin/sales-report/filter" method="GET">
     <select name="filter" id="filter">
-      <% let filter%>
+      <% let filter %>
       <option value="today" <%= filter === "today" ? "selected" : "" %>>Today</option>
       <option value="weekly" <%= filter === "weekly" ? "selected" : "" %>>Weekly</option>
       <option value="monthly" <%= filter === "monthly" ? "selected" : "" %>>Monthly</option>
@@ -191,46 +190,63 @@
       <option value="specific" <%= filter === "specific" ? "selected" : "" %>>Specific Date</option>
     </select>
     <input type="date" id="startDate" name="startDate" >
-  <input type="date" id="endDate" name="endDate" >
-    
+    <input type="date" id="endDate" name="endDate" >
     <button type="submit">Filter</button>
   </form>
 </div>
 
 <p>Total Revenue: ₹<%= totalRevenue %></p>
+<p>Total Offer: ₹<%= totalOffer  %></p>
 
 <table>
   <thead>
     <tr>
       <th>Order ID</th>
-      <th>User</th>
+      <th>User Name</th>
+      <th>Product Name</th>
+      <th>Quantity</th>
+      <th>Product Price</th>
+     
+      <th>Discount</th>
       <th>Total Amount</th>
-      <th>Status</th>
     </tr>
   </thead>
   <tbody>
     <% orders.forEach(order => { %>
-      <tr>
-        <td><%= order._id %></td>
-        <td><%= order.userId.name %></td>
-        <td>₹<%= order.totalAmount %></td>
-        <td><%= order.status %></td>
-      </tr>
-    <% }) %>
+      <% order?.items?.forEach(item => { %>
+        <tr>
+          <td><%= order._id %></td>
+          <td><%= order.userName %></td>
+          <td><%= item.productName %></td>
+          <td><%= item.quantity %></td>
+          <td><%= item.price %></td>
+          
+          <% if (order.discount) { %>
+            <td><%= order.discount %></td>
+          <% } else { %>
+            <td>0</td>
+          <% } %>
+          <td><%= (item.price*item.quantity)-order.discount %></td>
+        </tr>
+      <% }); %>
+    <% }); %>
   </tbody>
 </table>
 
 <div class="pagination">
   <% if (currentPage > 1) { %>
-    <a href="?page=<%= currentPage - 1 %>">Previous</a>
+    <a href="?page=<%= currentPage - 1 %>&filter=<%= filter %>">Previous</a>
   <% } %>
+  
   <% for (let i = 1; i <= totalPages; i++) { %>
-    <a href="?page=<%= i %>" <%= currentPage === i ? "class='active'" : "" %>><%= i %></a>
+    <a href="?page=<%= i %>&filter=<%= filter %>" <%= currentPage === i ? "class='active'" : "" %>><%= i %></a>
   <% } %>
+  
   <% if (currentPage < totalPages) { %>
-    <a href="?page=<%= currentPage + 1 %>">Next</a>
+    <a href="?page=<%= currentPage + 1 %>&filter=<%= filter %>">Next</a>
   <% } %>
 </div>
+
 
 <div class="downloads">
   <a href="/admin/sales-report/pdf?filter=<%= filter %>">Download PDF</a>
@@ -238,6 +254,8 @@
 </div>
 
 <%- include("../partials/admin/footer.ejs") %>
+
+
 
 
 <!-- <script>

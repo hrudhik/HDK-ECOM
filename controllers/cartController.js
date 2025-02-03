@@ -21,7 +21,7 @@ const cart = async (req, res) => {
         const userId = req.session.user
         let errormessage=null
 
-        let cart = await Cart.findOne({ user }).populate('items.productId');
+        let cart = await Cart.findOne({ userId }).populate('items.productId');
         for(let i=0;i<cart.items.length;i++){
             let productId=cart.items[i].productId?._id
             // console.log(productId)
@@ -311,6 +311,7 @@ const placeorder = async (req, res) => {
     const userId = req.session.user;
     const { paymentMethod, totalAmount, addressId, couponCode } = req.body;
     let discount
+    let couponId
 
     console.log("paymentmethod", paymentMethod);
     console.log("amount", totalAmount)
@@ -333,6 +334,7 @@ const placeorder = async (req, res) => {
                         if (totalAmount > coupon.minPurchaseAmount) {
                             console.log(coupon.minPurchaseAmount)
                             discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+                            couponId=coupon._id
                             console.log("discount:", discount);
                         }
                         // res.status(200).json({ totalAmount, message: "Coupon applied successfully!" });
@@ -388,9 +390,12 @@ const placeorder = async (req, res) => {
                     totalAmount: totalAmount - discount || totalAmount,
                     items: orderItems,
                     shippingAddress: foundAddress, // Include the address in the order
+                    discount:discount
                 });
                 // console.log('order',order);
-                
+                if(couponId){
+                    order.couponId=couponId
+                }
 
                 await order.save();
                 for(let i=0;i<cart.items.length;i++){
@@ -428,6 +433,8 @@ const placeorder = async (req, res) => {
                 const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
                 if (coupon && totalAmount > coupon.minPurchaseAmount) {
                     discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+                    couponId=coupon._id
+
                 }
             }
 
@@ -441,12 +448,14 @@ const placeorder = async (req, res) => {
             console.log("online payment total amount", totalAmount)
 
             // Validate coupon if applied
-            if (couponCode) {
-                const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-                if (coupon && totalAmount > coupon.minPurchaseAmount) {
-                    discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
-                }
-            }
+            // if (couponCode) {
+            //     const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+            //     if (coupon && totalAmount > coupon.minPurchaseAmount) {
+            //         discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+            //         couponId=coupon._id
+
+            //     }
+            // }
 
             // Validate addressId
             if (!mongoose.isValidObjectId(addressId)) {
@@ -478,7 +487,11 @@ const placeorder = async (req, res) => {
                 totalAmount: totalAmount - discount || totalAmount,
                 items: orderItems,
                 shippingAddress: foundAddress,
+                discount:discount
             });
+            if(couponId){
+                order.couponId=couponId
+            }
 
             await order.save();
 
@@ -538,6 +551,7 @@ const placeorder = async (req, res) => {
                         if (totalAmount > coupon.minPurchaseAmount) {
                             console.log(coupon.minPurchaseAmount)
                             discount = Math.round((totalAmount * coupon.discountPercentage) / 100);
+                            couponId=coupon._id
                             console.log("discount:", discount);
                         }
                         // return res.status(200).json({ totalAmount, message: "Coupon applied successfully!" });
@@ -591,8 +605,12 @@ const placeorder = async (req, res) => {
                     totalAmount: totalAmount - discount || totalAmount,
                     items: orderItems,
                     shippingAddress: foundAddress, // Include the address in the order
-                    paymentstatus:"Paid"
+                    paymentstatus:"Paid",
+                    discount:discount
                 });
+                if(couponId){
+                    order.couponId=couponId
+                }
                 console.log('orderd items',order)
                 await order.save();
 
@@ -720,16 +738,35 @@ const cancelOrder = async (req, res) => {
         if (!order) {
             return res.status(404).json({ error: "Order not found." });
         }
+        
 
         // Find the product in the items array
         const product = order.items.find(
             (item) => item.productId.toString() === productId
         );
-        console.log("order cancelled product",product)
+        // console.log("order cancelled product",product)
 
         if (!product) {
             return res.status(404).json({ error: "Product not found in this order." });
         }
+
+        let returnPrice
+        if(order.discount>0){
+            const coupon= await Coupon.findById(order.couponId);
+            // console.log("coupon",coupon)
+            if(coupon.minPurchaseAmount<=product.price){
+                returnPrice=product.price-order.discount
+                order.discount=0
+                
+            }
+        }
+        // console.log("order",order)
+        // console.log("returnPrice",returnPrice)
+
+
+
+
+
 
         // Check if the product is already canceled or shipped
         if (product.status === "Shipped") {
@@ -745,14 +782,14 @@ const cancelOrder = async (req, res) => {
         product.status = "Cancelled";
         await order.save();
         const findproduct = await Product.findById(productId)
-        console.log("findProducut:",findproduct)
+        // console.log("findProducut:",findproduct)
         findproduct.quantity+=product.quantity
         findproduct.save()
 
         // Attempt refund only for online payments
         if (order.paymentMethod === "Online") {
             try {
-                const refundResult = await refundToWallet(orderId, userId, product.price);
+                const refundResult = await refundToWallet(orderId, userId,returnPrice||product.price);
                 console.log("Refund Result:", refundResult);
             } catch (refundError) {
                 console.warn("Refund skipped:", refundError.message);
@@ -765,7 +802,7 @@ const cancelOrder = async (req, res) => {
                 console.warn("Refund skipped:", refundError.message);
             }
         }
-        console.log("orderamount:", product.price)
+        console.log("orderamount:", returnPrice||product.price)
         res.redirect("/userProfile"); // Or use res.status(200).json() based on frontend handling
     } catch (error) {
         console.error("Error canceling product:", error);
@@ -803,6 +840,17 @@ const returnOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "The product is already returned." });
         }
 
+        let returnPrice
+        if(order.discount>0){
+            const coupon= await Coupon.findById(order.couponId);
+            // console.log("coupon",coupon)
+            if(coupon.minPurchaseAmount<=product.price){
+                returnPrice=product.price-order.discount
+                order.discount=0
+                
+            }
+        }
+
         // Update the product status to "Return"
         product.status = "Return";
         product.returnReason=returnReason
@@ -811,7 +859,7 @@ const returnOrder = async (req, res) => {
         // Attempt refund based on conditions
         if (order.paymentMethod === "Online" || (order.paymentMethod === "COD" && order.status === "Delivered")|| order.paymentMethod==="Wallet") {
             try {
-                const refundResult = await refundToWallet(orderId, userId, product.price);
+                const refundResult = await refundToWallet(orderId, userId,returnPrice||product.price);
                 console.log("Refund Result:", refundResult);
             } catch (refundError) {
                 console.warn("Refund skipped:", refundError.message);
@@ -824,31 +872,41 @@ const returnOrder = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to return the product. Please try again later." });
     }
 };
-
 const checkoutaddAddress = async (req, res) => {
     try {
         const userId = req.session.user;
         const userData = await User.findOne({ _id: userId });
-        const { addresType, name, city, state, pincode, landMark, phone, altPhone } = req.body
 
-        const userAddress = await Address.findOne({ userId: userData._id });
+        const { addresType, name, city, state, pincode, landMark, phone, altPhone } = req.body;
+
+        let userAddress = await Address.findOne({ userId: userData._id });
+
+        let newAddress;
         if (!userAddress) {
-            const newaddress = new Address({
+            // If no address exists, create a new one
+            newAddress = new Address({
                 userId: userData._id,
                 address: [{ addresType, name, city, state, pincode, landMark, phone, altPhone }]
-            })
-            await newaddress.save()
+            });
+            await newAddress.save();
         } else {
+            // If address exists, push new entry into the array
             userAddress.address.push({ addresType, name, city, state, pincode, landMark, phone, altPhone });
             await userAddress.save();
         }
-        res.status(200).json({ addresses: userAddress.address, message: "address added successfull" });
+
+        res.status(200).json({
+            success: true,
+            addresses: userAddress ? userAddress.address : newAddress.address,
+            message: "Address added successfully"
+        });
 
     } catch (error) {
-        console.log("checkout address adding error:", error);
-        res.redirect('/pagenotfound')
+        console.error("Checkout address adding error:", error);
+        res.status(500).json({ success: false, message: "Failed to add address" });
     }
-}
+};
+
 
 
 const invoice = async (req, res) => {

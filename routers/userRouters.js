@@ -91,6 +91,7 @@ router.get("/download-invoice",userAuth,cartControllrer.generateInvoicePdf);
 // user profile aditional routes
 
 router.get('/orderdetails',userAuth,cartControllrer.getOrderList)
+router.get('/addressmanagement',userAuth,userController.addressmanagement)
 
 
 
@@ -105,6 +106,7 @@ router.get('/logout', userController.logout)
 router.get('/productDetails',userAuth,userproductController.productDetails)
 
 // wallet
+router.get('/wallet',userAuth,userController.getWallet)
 router.post( "/top-up",userAuth,userController.topUpWallet)
 
 // Route to verify Razorpay payment

@@ -35,9 +35,17 @@
     </div>
 
     <script>
+        let salesChart, productChart, brandChart, categoryChart;
+
         async function fetchData(url) {
             const res = await fetch(url);
             return res.json();
+        }
+
+        function destroyChart(chart) {
+            if (chart) {
+                chart.destroy();
+            }
         }
 
         async function loadSalesChart(filter = 'monthly') {
@@ -45,9 +53,13 @@
             const labels = data.map(item => item._id);
             const values = data.map(item => item.totalSales);
             
-            new Chart(document.getElementById('salesChart'), {
+            destroyChart(salesChart);
+            salesChart = new Chart(document.getElementById('salesChart'), {
                 type: 'line',
-                data: { labels, datasets: [{ label: 'Total Sales', data: values, borderColor: 'blue', fill: false }] }
+                data: { 
+                    labels, 
+                    datasets: [{ label: 'Total Sales', data: values, borderColor: 'blue', fill: false }] 
+                }
             });
         }
 
@@ -56,7 +68,8 @@
             const labels = data.map(item => item.productName);
             const values = data.map(item => item.totalSold);
             
-            new Chart(document.getElementById('bestSellingProductsChart'), {
+            destroyChart(productChart);
+            productChart = new Chart(document.getElementById('bestSellingProductsChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'red' }] }
             });
@@ -67,7 +80,8 @@
             const labels = data.map(item => item._id);
             const values = data.map(item => item.totalSold);
             
-            new Chart(document.getElementById('bestSellingBrandsChart'), {
+            destroyChart(brandChart);
+            brandChart = new Chart(document.getElementById('bestSellingBrandsChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'green' }] }
             });
@@ -78,7 +92,8 @@
             const labels = data.map(item => item.categoryName);
             const values = data.map(item => item.totalSold);
             
-            new Chart(document.getElementById('bestSellingCategoriesChart'), {
+            destroyChart(categoryChart);
+            categoryChart = new Chart(document.getElementById('bestSellingCategoriesChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'blue' }] }
             });

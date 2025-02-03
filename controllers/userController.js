@@ -3,6 +3,8 @@ const Category = require('../models/categorySchema');
 const Product = require('../models/productSchema');
 const Brand = require('../models/brandSchema');
 const Order=require('../models/orderSchema')
+const Banner= require('../models/bannerSchema')
+const Address=require('../models/addressSchema')
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require('bcrypt');
@@ -38,15 +40,20 @@ const loadhomepage = async (req, res) => {
         productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
         productData = productData.slice(0, 4);
 
+        const today = new Date();
+        const banners = await Banner.find({
+            startDate: { $lte: today }, // Start date should be before or today
+            endDate: { $gte: today } // End date should be after or today
+        });
 
 
         // console.log('User ID from session:', userId);
         if (userId) {
             const userData = await User.findById(userId);
             // console.log('Fetched user data:', userData); 
-            res.render("home", { user: userData, products: productData });
+            res.render("home", { user: userData, products: productData,banners  });
         } else {
-            res.render("home", { products: productData , });
+            res.render("home", { products: productData ,banners  });
         }
     } catch (error) {
         console.log("the home page is not loading ", error);
@@ -488,6 +495,53 @@ const searchProducts = async (req, res) => {
     }
 };
 
+const getWallet = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        const userData = await User.findById(userId);
+
+        // Pagination variables
+        const page = parseInt(req.query.page) || 1; // Default page 1
+        const limit = 5; // Show 5 transactions per page
+        const skip = (page - 1) * limit;
+
+        // Sort transactions latest first and apply pagination
+        const totalTransactions = userData.wallet.transactions.length;
+        const transactions = userData.wallet.transactions
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(skip, skip + limit);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        res.render('wallethistory', {
+            user:userData,
+            walletBalance: userData.wallet.balance,
+            walletTransactions: transactions,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        console.log(error);
+        res.redirect('/pagenotfound');
+    }
+};
+
+
+const addressmanagement = async(req,res)=>{
+try {
+    const userId= req.session.user
+    const user= await User.findById(userId)
+    const findAddress= await Address.findOne({userId:userId})
+
+    res.render('addressManagement',{userAddress:findAddress,user})
+    
+} catch (error) {
+    console.log("error in loading addresmanage",error);
+    res.redirect('/pagenotfound')
+}
+}
+
 module.exports = {
     loadhomepage,
     pagenotfound,
@@ -504,7 +558,9 @@ module.exports = {
     topUpWallet,
     refundToWallet,
     categoryfilter,
-    searchProducts
+    searchProducts,
+    getWallet,
+    addressmanagement
     
 
 

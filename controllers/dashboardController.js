@@ -6,21 +6,18 @@ const Order = require('../models/orderSchema');  // Your Order model
 
 // 📊 Sales Report API (Yearly, Monthly)
 // router.get('/sales-report')
-const graph =async (req, res) => {
+const graph = async (req, res) => {
     try {
         const { filter } = req.query;
-        let dateFrom;
+        let dateFrom = new Date();
 
         if (filter === "monthly") {
-            dateFrom = new Date();
             dateFrom.setMonth(dateFrom.getMonth() - 1);
         } else if (filter === "yearly") {
-            dateFrom = new Date();
             dateFrom.setFullYear(dateFrom.getFullYear() - 1);
-        } else if(filter ==="weekly"){
-            dateFrom=new Date();
+        } else if (filter === "weekly") {
             dateFrom.setDate(dateFrom.getDate() - 7);
-        }else{
+        } else {
             return res.status(400).json({ message: "Invalid filter" });
         }
 
@@ -34,10 +31,7 @@ const graph =async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
-;
-
-// 📊 Most Sold Product
+};
 
 const bestproduct = async (req, res) => {
     try {
@@ -48,25 +42,16 @@ const bestproduct = async (req, res) => {
             { $limit: 5 }
         ]);
 
-        console.log('product bar', products);
-
-        // Corrected Promise.all() usage
         const graphdetails = await Promise.all(products.map(async (item) => {
             const product = await Product.findById(item._id, 'productName');
-            return {
-                productName: product ? product.productName : "Unknown Product",
-                totalSold: item.totalSold
-            };
+            return { productName: product?.productName || "Unknown", totalSold: item.totalSold };
         }));
 
-        // console.log("Product details: ", graphdetails);
-
-        res.json(graphdetails);  // Send the updated response with product names
+        res.json(graphdetails);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
-
 
 // 📊 Most Sold Brand
 // router.get('/best-selling-brands')

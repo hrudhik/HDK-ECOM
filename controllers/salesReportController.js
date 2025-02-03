@@ -1,35 +1,101 @@
-// salesReportController.js
-const excelJS = require('exceljs');
-const PDFDocument = require('pdfkit');
-// const fs = require("fs");
-// const path = require("path");
-const Order= require("../models/orderSchema");
-const pdfTable = require('pdfkit-table');
 
+const excelJS = require("exceljs");
+const PDFDocument = require("pdfkit-table");
+const Order = require("../models/orderSchema");
+const pdfTable = require("pdfkit-table");
+require("pdfkit-table");
 
-const renderSalesReportPage =  async (req, res) => {
+const renderSalesReportPage = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const totalOrders = await Order.countDocuments();
-    const totalPages = Math.ceil(totalOrders / limit);
+    // console.log('page',page,'limit',limit,'skip',skip)
 
-    const orders = await Order.find({})
-      .populate("userId")
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const orders = await Order.aggregate([
+      { $unwind: "$items" }, // Convert array of items into separate documents
+      { $match: { "items.status": "Delivered" } }, // Only include delivered products
+      {
+        $lookup: {
+          // Fetch user details
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      { $unwind: "$userDetails" }, // Convert user array to object
+      {
+        $lookup: {
+          // Fetch product details for each item
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      { $unwind: "$productDetails" }, // Convert product array to object
+      {
+        $addFields: {
+          "items.productName": "$productDetails.productName",
+          "items.productCategory": "$productDetails.category",
+          "items.productBrand": "$productDetails.brand",
+          "items.productPrice": "$productDetails.price",
+          "items.totalPrice": {
+            $multiply: ["$items.quantity", "$items.productPrice"],
+          },
+        },
+      },
+      {
+        $group: {
+          // Group back by order ID after filtering items
+          _id: "$_id",
+          userId: { $first: "$userId" },
+          userName: { $first: "$userDetails.name" },
+          createdAt: { $first: "$createdAt" },
+          paymentMethod: { $first: "$paymentMethod" },
+          totalAmount: { $sum: "$items.totalPrice" }, // Sum up the correct total
+          discount: { $first: "$discount" },
+          items: { $push: "$items" }, // Ensure items array contains product details
+        },
+      },
+      { $sort: { createdAt: -1 } }, // Sort by latest orders
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+    // orders.forEach(order=>order.items.forEach(item=>console.log('item',item)))
+    // console.log("Orders with product details: ", orders);
 
+    // Calculate total revenue only from delivered products
     const totalRevenue = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered" } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
+          totalRevenue: {
+            $sum: { $multiply: ["$items.quantity", "$items.price"] },
+          },
         },
       },
     ]);
+
+    // Calculate total discount
+    const totalOffer = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered" } },
+      {
+        $group: {
+          _id: null,
+          Offer: { $sum: "$discount" },
+        },
+      },
+    ]);
+    let totalOrders=(await Order.aggregate([{$unwind:"$items"},{$match:{"items.status":"Delivered"}}])).length;
+   
+    const totalPages = Math.ceil(totalOrders / limit);
+    // console.log("totalOrders",totalOrders,totalPages)
 
     res.render("salesreport", {
       orders,
@@ -37,6 +103,7 @@ const renderSalesReportPage =  async (req, res) => {
       totalRevenue: totalRevenue[0]?.totalRevenue || 0,
       currentPage: page,
       totalPages,
+      totalOffer: totalOffer[0]?.Offer || 0,
     });
   } catch (error) {
     console.error("Error rendering sales report page:", error);
@@ -44,11 +111,10 @@ const renderSalesReportPage =  async (req, res) => {
   }
 };
 
-
 // Function to fetch sales data with pagination
 const getSalesReport = async (req, res) => {
   try {
-    const { filter, startDate, endDate, page = 1, limit = 10 } = req.query;
+    const { filter, startDate, endDate, page = 1, limit = 5 } = req.query;
     const skip = (page - 1) * limit;
 
     let matchCondition = {};
@@ -61,13 +127,19 @@ const getSalesReport = async (req, res) => {
       };
     } else if (filter === "weekly") {
       const today = new Date();
-      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+      const weekStart = new Date(
+        today.setDate(today.getDate() - today.getDay())
+      );
       matchCondition.createdAt = {
         $gte: weekStart,
         $lt: new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000),
       };
     } else if (filter === "monthly") {
-      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const monthStart = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      );
       matchCondition.createdAt = {
         $gte: monthStart,
         $lt: new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1),
@@ -85,24 +157,85 @@ const getSalesReport = async (req, res) => {
       };
     }
 
-    const totalOrders = await Order.countDocuments(matchCondition);
-    const totalPages = Math.ceil(totalOrders / limit);
+ 
+    const orders = await Order.aggregate([
+      { $match: matchCondition },
+      { $unwind: "$items" }, // Convert array of items into separate documents
+      { $match: { "items.status": "Delivered" } }, // Only include delivered products
+      {
+        $lookup: {
+          // Fetch user details
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      { $unwind: "$userDetails" }, // Convert user array to object
+      {
+        $lookup: {
+          // Fetch product details for each item
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      { $unwind: "$productDetails" }, // Convert product array to object
+      {
+        $addFields: {
+          "items.productName": "$productDetails.productName",
+          "items.productCategory": "$productDetails.category",
+          "items.productBrand": "$productDetails.brand",
+          "items.productPrice": "$productDetails.price",
+          "items.totalPrice": {
+            $multiply: ["$items.quantity", "$items.productPrice"],
+          },
+        },
+      },
+      {
+        $group: {
+          // Group back by order ID after filtering items
+          _id: "$_id",
+          userId: { $first: "$userId" },
+          userName: { $first: "$userDetails.name" },
+          createdAt: { $first: "$createdAt" },
+          paymentMethod: { $first: "$paymentMethod" },
+          totalAmount: { $sum: "$items.totalPrice" }, // Sum up the correct total
+          discount: { $first: "$discount" },
+          items: { $push: "$items" }, // Ensure items array contains product details
+        },
+      },
+      { $sort: { createdAt: -1 } }, // Sort by latest orders
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
-    const orders = await Order.find(matchCondition)
-      .populate("userId")
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
+    // Calculate total revenue only from delivered products
     const totalRevenue = await Order.aggregate([
       { $match: matchCondition },
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered" } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalAmount" },
+          totalRevenue: { $sum: "$items.price" },
         },
       },
     ]);
+    const totalOffer = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered" } },
+      {
+        $group: {
+          _id: null,
+          Offer: { $sum: "$discount" },
+        },
+      },
+    ]);
+
+    let totalOrders=(await Order.aggregate([{ $match: matchCondition },{$unwind:"$items"},{$match:{"items.status":"Delivered"}}])).length;   
+     const totalPages = Math.ceil(totalOrders / limit);
 
     res.render("salesreport", {
       orders,
@@ -111,16 +244,19 @@ const getSalesReport = async (req, res) => {
       currentPage: parseInt(page),
       totalPages,
       filter,
+      totalOffer: totalOffer[0]?.Offer || 0,
     });
   } catch (error) {
     console.error("Error filtering sales report:", error);
     res.status(500).send("Error filtering sales report");
   }
 };
+
+
 const downloadPdf = async (req, res) => {
   try {
     const { filter, startDate, endDate } = req.query;
-    let matchCondition = {};
+    let matchCondition = { "items.status": "Delivered" };
 
     if (filter === "today") {
       const today = new Date();
@@ -135,61 +271,70 @@ const downloadPdf = async (req, res) => {
       };
     }
 
-    const salesData = await Order.find(matchCondition).populate("userId").lean();
+    const salesData = await Order.find(matchCondition).sort({createdAt:-1})
+      .populate("userId")
+      .populate("items.productId") // Ensure product details are included
+      .lean();
 
-    const pdfDoc = new PDFDocument({ margin: 30 });
+    if (!salesData.length) {
+      return res.status(404).send("No sales data found for the selected filter.");
+    }
+
+    const pdfDoc = new PDFDocument({ margin: 30, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=sales_report.pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=sales_report.pdf"
+    );
     pdfDoc.pipe(res);
 
     // Title
-    pdfDoc.fontSize(18).text("Sales Report", { align: "center" }).moveDown(1);
+    pdfDoc
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .text(`Sales Report ${filter.toUpperCase()}`, { align: "center" })
+      .moveDown(2);
 
     // Table Headers
-    const tableTop = 100;
-    let y = tableTop;
+    const headers = [
+      { label: "Order ID", property: "orderId", width: 90, align: "center" },
+      { label: "User Name", property: "userName", width: 90, align: "center" },
+      { label: "Product Name", property: "productName", width: 120, align: "center" },
+      { label: "Qty", property: "quantity", width: 20, align: "center" },
+      { label: "Price", property: "price", width: 70, align: "center" },
+      { label: "Discount", property: "discount", width: 70, align: "center" },
+      { label: "Total", property: "totalAmount", width: 80, align: "center" },
+    ];
 
-    const columnWidths = [150, 200, 150, 100]; // Adjust column widths
-    const headers = ["Order ID", "User Name", "Total Amount", "Status"];
+    // Table Data
+    const rows = [];
+    salesData.forEach((order) => {
+      order.items.forEach((item) => {
+        const productName = item.productId?.productName || "Unknown";
+        const quantity = Number(item.quantity) || 0;
+        const price = Number(item.price) || 0;
+        const discount = Number(order.discount) || 0;
+        const totalAmount = (quantity * price) - discount;
 
-    pdfDoc.fontSize(12).font("Helvetica-Bold");
-    let x = 50;
-
-    headers.forEach((header, i) => {
-      pdfDoc.text(header, x, y, { width: columnWidths[i], align: "left" });
-      x += columnWidths[i];
+        rows.push([
+          order._id.toString(),
+          order.userId?.name || "N/A",
+          productName,
+          quantity.toString(),
+          `₹${price.toLocaleString("en-IN")}`,
+          `₹${discount.toLocaleString("en-IN")}`,
+          `₹${totalAmount.toLocaleString("en-IN")}`,
+        ]);
+      });
     });
 
-    // Draw a line under headers
-    y += 20;
-    pdfDoc.moveTo(50, y).lineTo(550, y).stroke();
-    y += 10;
-
-    // Table Content
-    pdfDoc.fontSize(10).font("Helvetica");
-
-    salesData.forEach((order, index) => {
-      x = 50;
-
-      const rowData = [
-        order._id,
-        order.userId.name || "N/A",
-        `₹${order.totalAmount.toLocaleString("en-IN")}`,
-        order.status,
-      ];
-
-      rowData.forEach((data, i) => {
-        pdfDoc.text(data, x, y, { width: columnWidths[i], align: "left" });
-        x += columnWidths[i];
-      });
-
-      y += 20;
-
-      // Check for page overflow
-      if (y > 750) {
-        pdfDoc.addPage();
-        y = tableTop; // Reset y position
-      }
+    // Add Table
+    pdfDoc.table({ headers, rows }, {
+      prepareHeader: () => pdfDoc.font("Helvetica-Bold").fontSize(10),
+      prepareRow: () => pdfDoc.font("Helvetica").fontSize(9),
+      columnSpacing: 5,
+      rowSpacing: 4,
+      width: 550,
     });
 
     // Finalize the PDF
@@ -201,110 +346,77 @@ const downloadPdf = async (req, res) => {
 };
 
 
-// try {
-//   const salesData = req.body.salesData; 
-  
-//   const pdfDoc = new PDFDocument({ margin: 30 });
 
-  
-//   res.setHeader('Content-Type', 'application/pdf');
-//   res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
-
-  
-//   pdfDoc.pipe(res);
-
-  
-//   pdfDoc.fontSize(18).text('Sales Report', { align: 'center' }).moveDown();
-
-  
-//   const tableTop = 100;
-//   const cellPadding = 5;
-//   const columnWidths = [150, 100, 100, 100]; 
-  
-//   const headers = ['Order ID', 'User Name', 'Total Amount', 'Status'];
-//   let x = 50; 
-
-//   pdfDoc.fontSize(12).font('Helvetica-Bold');
-
-//   headers.forEach((header, index) => {
-//     pdfDoc
-//       .rect(x, y, columnWidths[index], 20) 
-//       .stroke()
-//       .text(header, x + cellPadding, y + cellPadding, { width: columnWidths[index] - cellPadding });
-//     x += columnWidths[index]; 
-//   });
-
- 
-//   y += 20; 
-//   pdfDoc.fontSize(10).font('Helvetica');
-//   salesData.forEach((order) => {
-//     x = 50;
-//     const rowData = [
-//       order._id,
-//       order.userId.name,
-//       `${order.totalAmount.toLocaleString('en-IN')}`,
-//       order.status,
-//     ];
-
-//     rowData.forEach((data, index) => {
-//       pdfDoc
-//         .rect(x, y, columnWidths[index], 20) 
-//         .stroke()
-//         .text(data, x + cellPadding, y + cellPadding, { width: columnWidths[index] - cellPadding });
-//       x += columnWidths[index];
-//     });
-//     y += 20; 
-//   });
-
-//   // Finalize the document
-//   pdfDoc.end();
-// } catch (error) {
-//   console.error('Error generating PDF:', error);
-//   res.status(500).send('Failed to generate PDF');
-// }
-// };
-
-
-// Download Excel
 const downloadExcel = async (req, res) => {
   try {
     const { filter, startDate, endDate } = req.query;
-    let matchCondition = {};
+    let matchCondition = { "items.status": "Delivered" };
 
-    if (filter === "specific" && startDate && endDate) {
+    if (filter === "today") {
+      const today = new Date();
+      matchCondition.createdAt = {
+        $gte: new Date(today.setHours(0, 0, 0, 0)),
+        $lt: new Date(today.setHours(23, 59, 59, 999)),
+      };
+    } else if (filter === "specific" && startDate && endDate) {
       matchCondition.createdAt = {
         $gte: new Date(startDate),
         $lt: new Date(endDate),
       };
     }
 
-    const salesData = await Order.find(matchCondition).populate("userId").lean();
+    // Fetch sales data
+    const salesData = await Order.find(matchCondition)
+      .populate("userId")
+      .populate("items.productId") // Ensure product details are included
+      .lean();
 
+    if (!salesData.length) {
+      return res.status(404).send("No sales data found for the selected filter.");
+    }
+
+    // Create Excel Workbook & Worksheet
     const workbook = new excelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
 
+    // Define Table Headers
     worksheet.columns = [
-      { header: "Order ID", key: "_id", width: 25 },
-      { header: "User", key: "user", width: 20 },
-      { header: "Total Amount", key: "totalAmount", width: 15 },
-      { header: "Status", key: "status", width: 15 },
+      { header: "Order ID", key: "orderId", width: 25, align: "center" },
+      { header: "User Name", key: "userName", width: 20 , align: "center"},
+      { header: "Product Name", key: "productName", width: 25 , align: "center" },
+      { header: "Quantity", key: "quantity", width: 10 , align: "center"},
+      { header: "Price", key: "price", width: 15 , align: "center"},
+      { header: "Discount", key: "discount", width: 15, align: "center" },
+      { header: "Total Amount", key: "totalAmount", width: 20 , align: "center"},
     ];
 
-    salesData.forEach((data) => {
-      worksheet.addRow({
-        _id: data._id,
-        user: data.userId.name,
-        totalAmount: `₹${data.totalAmount.toFixed(2)}`,
-        status: data.status,
+    // Add Data to Worksheet
+    salesData.forEach((order) => {
+      order.items.forEach((item) => {
+        console.log("uahfgiouaghgviughviughriuaghuiahgaubhuiob",item)
+        const productName = item.productId?.productName || "Unknown";
+        const quantity = Number(item.quantity) ;
+        const price = Number(item.price) || 0;
+        const discount = Number(order.discount) || 0;
+        const totalAmount = (quantity * price) - discount;
+
+        worksheet.addRow({
+          orderId: order._id.toString(),
+          userName: order.userId?.name || "N/A",
+          productName: productName,
+          quantity: quantity,
+          price: `₹${price.toLocaleString("en-IN")}`,
+          discount: `₹${discount.toLocaleString("en-IN")}`,
+          totalAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
+        });
       });
     });
 
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
+    // Set Response Headers
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", "attachment; filename=sales_report.xlsx");
 
+    // Write the workbook to the response
     await workbook.xlsx.write(res);
     res.status(200).end();
   } catch (error) {
@@ -314,115 +426,9 @@ const downloadExcel = async (req, res) => {
 };
 
 
-
-// const downloadPdf = async (req, res) => {
-//   try {
-//     const salesData = req.body.salesData; 
-    
-//     const pdfDoc = new PDFDocument({ margin: 30 });
-
-    
-//     res.setHeader('Content-Type', 'application/pdf');
-//     res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
-
-    
-//     pdfDoc.pipe(res);
-
-    
-//     pdfDoc.fontSize(18).text('Sales Report', { align: 'center' }).moveDown();
-
-    
-//     const tableTop = 100;
-//     const cellPadding = 5;
-//     const columnWidths = [150, 100, 100, 100]; 
-    
-//     const headers = ['Order ID', 'User Name', 'Total Amount', 'Status'];
-//     let x = 50; 
-
-//     pdfDoc.fontSize(12).font('Helvetica-Bold');
-
-//     headers.forEach((header, index) => {
-//       pdfDoc
-//         .rect(x, y, columnWidths[index], 20) 
-//         .stroke()
-//         .text(header, x + cellPadding, y + cellPadding, { width: columnWidths[index] - cellPadding });
-//       x += columnWidths[index]; 
-//     });
-
-   
-//     y += 20; 
-//     pdfDoc.fontSize(10).font('Helvetica');
-//     salesData.forEach((order) => {
-//       x = 50;
-//       const rowData = [
-//         order._id,
-//         order.userId.name,
-//         `${order.totalAmount.toLocaleString('en-IN')}`,
-//         order.status,
-//       ];
-
-//       rowData.forEach((data, index) => {
-//         pdfDoc
-//           .rect(x, y, columnWidths[index], 20) 
-//           .stroke()
-//           .text(data, x + cellPadding, y + cellPadding, { width: columnWidths[index] - cellPadding });
-//         x += columnWidths[index];
-//       });
-//       y += 20; 
-//     });
-
-//     // Finalize the document
-//     pdfDoc.end();
-//   } catch (error) {
-//     console.error('Error generating PDF:', error);
-//     res.status(500).send('Failed to generate PDF');
-//   }
-// };
-
-
-// const downloadExcel = async (req, res) => {
-//     try {
-//       const salesData = req.body.salesData; // Parse sales data sent from the frontend
-  
-//       const workbook = new excelJS.Workbook();
-//       const worksheet = workbook.addWorksheet('Sales Report');
-  
-//       // Define worksheet columns
-//       worksheet.columns = [
-//         { header: 'Order ID', key: '_id', width: 30 },
-//         { header: 'User', key: 'user', width: 30 },
-//         { header: 'Total Amount', key: 'totalAmount', width: 15 },
-//         { header: 'Status', key: 'status', width: 20 },
-//       ];
-  
-//       // Add rows to the worksheet
-//       salesData.forEach((data) => {
-//         worksheet.addRow({
-//           _id: data._id,
-//           user: data.userId.name,
-//           totalAmount: data.totalAmount,
-//           status: data.status,
-//         });
-//       });
-  
-//       // Set the response headers
-//       res.setHeader(
-//         'Content-Type',
-//         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-//       );
-//       res.setHeader('Content-Disposition', 'attachment; filename=sales_report.xlsx');
-  
-//       // Write the workbook to the response
-//       await workbook.xlsx.write(res);
-//       res.status(200).end();
-//     } catch (error) {
-//       console.error('Error generating Excel:', error);
-//       res.status(500).send('Failed to generate Excel');
-//     }
-//   };
-module.exports={
+module.exports = {
   renderSalesReportPage,
   getSalesReport,
   downloadExcel,
-  downloadPdf
-}
+  downloadPdf,
+};

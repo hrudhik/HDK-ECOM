@@ -124,11 +124,13 @@
                         <td><%=item.quantity%></td>
                         <td><%=item.status%></td>
                         <td><%=item.price%></td>
-                        <td><%=item.price* item.quantity%></td>
+                        <td><%=item.price* item.quantity -order.discount%></td>
                     </tr>
                     <%})%>
+
                 </tbody>
             </table>
+            <p class="total">Discount:<%=order.discount%></p>
             <p class="total">Total Amount:<%=order.totalAmount%></p>
             <div style="text-align: center;">
                 <a

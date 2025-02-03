@@ -1,6 +1,31 @@
 <%- include("../partials/user/header.ejs") %>
 <main class="main">
+    <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <% banners.forEach((banner, index) => { %>
+                <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+                    <img src="/uploads/re-image/<%= banner.image %>" class="d-block w-100" alt="<%= banner.title %>">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5><%= banner.title %></h5>
+                        <p><%= banner.description %></p>
+                        <% if (banner.link) { %>
+                            <a href="<%= banner.link %>" class="btn btn-primary">Shope Now</a>
+                        <% } %>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+    
     <section class="section-padding">
+
+        
         <div class="container wow fadeIn animated">
             <h3 class="section-title mb-20"><span>New</span> Arrivals</h3>
             <div class="carausel-6-columns-cover position-relative">
