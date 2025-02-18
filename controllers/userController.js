@@ -33,8 +33,9 @@ const loadhomepage = async (req, res) => {
         const categoryies = await Category.find({ isListed: true });
         // console.log(categoryies,'cat')
         let productData = await Product.find({
-            isBlocked: false,  quantity: { $gt: 0 }
-        })
+            isBlocked: false,            category: { $in: categoryies.map(cat => cat._id) },
+            quantity: { $gt: 0 }
+        }).populate("category")
         // console.log(productData,'sdfh')
 
         productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
@@ -42,8 +43,8 @@ const loadhomepage = async (req, res) => {
 
         const today = new Date();
         const banners = await Banner.find({
-            startDate: { $lte: today }, // Start date should be before or today
-            endDate: { $gte: today } // End date should be after or today
+            startDate: { $lte: today }, 
+            endDate: { $gte: today } 
         });
 
 
@@ -64,9 +65,11 @@ const loadhomepage = async (req, res) => {
 
 const loadsignUp = async (req, res) => {
     const user = req.session.user
+    const errorMessage=req.query.errorr
+    console.log(errorMessage)
     if (!user) {
         try {
-            return res.render("signup")
+            return res.render("signup",{errorMessage})
         } catch (error) {
             console.log("the signup page is note loading ");
             res.status(500).send("internal server error")
@@ -289,49 +292,85 @@ const loadshopePage = async (req, res) => {
         const user = req.session.user;
         const categoryies = await Category.find({ isListed: true });
         const userData = await User.findOne({ _id: user });
-        req.session.categoryId=null
-        // const categoryIds = categoryies.map((category) => category._id.toString());
-        const page = parseInt(req.query.page) || 1
+
+        req.session.categoryId = null;
+
+        const page = parseInt(req.query.page) || 1;
         const limit = 9;
         const skip = (page - 1) * limit;
-        const products = await Product.find({
-            isBlocked: false,
-            // category: { $in: categoryIds }
-            quantity: { $gt: 0 },
-        }).sort({ createdOn: -1 }).skip(skip).limit(limit);
 
-        const totalProducts = await Product.countDocuments({
+        // 🛠️ Get Query Parameters for Filters & Sorting
+        const { query, category, priceRange, sort } = req.query;
+
+        // ✅ Filtering Conditions
+        const filters = {
             isBlocked: false,
-            // category: { $in: categoryIds },
             quantity: { $gt: 0 },
-        });
+        };
+
+        // ✅ Apply Category Filter
+        if (category && category !== "all") {
+            filters.category = category;
+        }
+
+        // ✅ Apply Price Range Filter
+        if (priceRange) {
+            const [min, max] = priceRange.split('-').map(Number);
+            filters.salePrice = {};
+            if (!isNaN(min)) filters.salePrice.$gte = min;
+            if (!isNaN(max)) filters.salePrice.$lte = max;
+        }
+
+        // ✅ Apply Search Filter
+        if (query) {
+            const searchRegex = new RegExp(query, "i");
+            filters.$or = [{ productName: searchRegex }, { description: searchRegex }];
+        }
+
+        // ✅ Find Products with Filters
+        let products = Product.find(filters).populate("category").skip(skip).limit(limit);
+
+        // ✅ Apply Sorting
+        if (sort === "lowToHigh") {
+            products = products.sort({ salePrice: 1 });
+        } else if (sort === "highToLow") {
+            products = products.sort({ salePrice: -1 });
+        } else if (sort === "aToZ") {
+            products = products.sort({ productName: 1 });
+        } else if (sort === "zToA") {
+            products = products.sort({ productName: -1 });
+        }
+
+        const totalProducts = await Product.countDocuments(filters);
         const totalPages = Math.ceil(totalProducts / limit);
-
         const brands = await Brand.find({ isBlocked: false });
-        // const categorywithIds = categoryies.map(category => ({ _id: category._id, name: category.name }))
 
-
-        res.render('shope', {
+        // ✅ Render Shop Page with Filters
+        res.render("shope", {
             user: userData,
-            products: products,
+            products: await products,
             category: categoryies,
             brand: brands,
-            totalProducts: totalProducts,
+            totalProducts,
             currentPage: page,
-            totalPages: totalPages,
-        })
+            totalPages,
+            searchQuery: query || "",
+            selectedCategory: category || "",
+            selectedPriceRange: priceRange || "",
+            selectedSort: sort || "",
+        });
     } catch (error) {
-        console.error(error)
-        res.redirect('/pagenotfound')
-
-
+        console.error("Error in loadshopePage:", error);
+        res.redirect("/pagenotfound");
     }
-}
+};
+
+
 
 
 const categoryfilter = async (req, res) => {
     try {
-        const { category, sort, priceRange } = req.query;
+        const { category, sort, priceRange, query } = req.query;
         const page = parseInt(req.query.page) || 1;
         const limit = 9;
         const skip = (page - 1) * limit;
@@ -341,59 +380,59 @@ const categoryfilter = async (req, res) => {
             quantity: { $gt: 0 },
         };
 
-        // Add category filter
+        // ✅ Category Filter
         if (category && mongoose.Types.ObjectId.isValid(category)) {
             filters.category = new mongoose.Types.ObjectId(category);
-            req.session.categoryId = category;
-        } else if (req.session.categoryId && mongoose.Types.ObjectId.isValid(req.session.categoryId)) {
-            filters.category = new mongoose.Types.ObjectId(req.session.categoryId);
         }
 
-        // Add price range filter
+        // ✅ Price Range Filter
         if (priceRange) {
-            // console.log("priceRange",priceRange)
-            const [gt, lt] = priceRange.split('-').map(Number);
-            filters.salePrice={}
-            // console.log("gt lt",gt, lt)
-            if(!isNaN(gt)){
-                filters.salePrice.$gte=gt
-            }
-            if(!isNaN(lt)){
-                filters.salePrice.$lte=lt
-            }
-            
+            const [min, max] = priceRange.split('-').map(Number);
+            filters.salePrice = {};
+            if (!isNaN(min)) filters.salePrice.$gte = min;
+            if (!isNaN(max)) filters.salePrice.$lte = max;
         }
 
-        
+        // ✅ Search Filter (Search by Name or Description)
+        if (query) {
+            const searchRegex = new RegExp(query, "i");
+            filters.$or = [
+                { productName: searchRegex },
+                { description: searchRegex },
+            ];
+        }
+
         let products = Product.find(filters).skip(skip).limit(limit);
 
-      
-        if (sort === 'lowToHigh') {
+        // ✅ Sorting
+        if (sort === "lowToHigh") {
             products = products.sort({ salePrice: 1 });
-        } else if (sort === 'highToLow') {
+        } else if (sort === "highToLow") {
             products = products.sort({ salePrice: -1 });
-        } else if (sort === 'aToZ') {
+        } else if (sort === "aToZ") {
             products = products.sort({ productName: 1 });
-        } else if (sort === 'zToA') {
+        } else if (sort === "zToA") {
             products = products.sort({ productName: -1 });
         }
 
-      
         const totalProducts = await Product.countDocuments(filters);
         const totalPages = Math.ceil(totalProducts / limit);
 
-        
-        res.render('shope', {
+        res.render("shope", {
             user: req.session.user,
             products: await products,
             category: await Category.find({ isListed: true }),
             totalProducts,
-            currentPage: page,
             totalPages,
+            currentPage: page,
+            selectedCategory: category,
+            selectedSort: sort,
+            selectedPriceRange: priceRange,
+            searchQuery: query,
         });
     } catch (error) {
         console.error("Error in categoryfilter:", error);
-        res.redirect('/pagenotfound');
+        res.redirect("/pagenotfound");
     }
 };
 

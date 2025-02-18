@@ -1,335 +1,205 @@
-<%- include("../partials/user/header.ejs") %>
+<%- include("../partials/user/header.ejs") %>   
+
 <style>
- .card-green {
-   background-color: #ADD8E6;
- }
- .main {
-   padding: 30px 0;
- }
-
-
- .dashboard-menu {
-   background-color: #cce3e6;
-   border-radius: 10px;
-   padding: 15px;
-   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
- }
-
-
- .dashboard-menu .nav-link {
- font-weight: bold;
- color: #30683c;
- box-shadow: 0 4px 10px rgba(123, 131, 112, 0.3), 0 4px 20px rgba(0, 191, 255, 0.2);
- transition: box-shadow 0.3s ease;
+/* General Styles */
+.main {
+    padding: 30px 0;
+    background-color: #f5f7fa;
+}
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+.card:hover {
+    transform: scale(1.02);
+}
+.card-green {
+    background-color: #d4edda;
+    border-left: 5px solid #28a745;
+}
+.card-header {
+    background-color: #0066cc;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+    font-weight: bold;
+}
+.btn-custom {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    display: inline-block;
+    transition: 0.3s;
+}
+.btn-custom:hover {
+    background-color: #218838;
 }
 
-
-.dashboard-menu .nav-link:hover {
- color: #00bfff;
- box-shadow: 0 4px 15px rgba(173, 255, 47, 0.5), 0 6px 25px rgba(0, 191, 255, 0.4);
+/* Sidebar */
+.dashboard-menu {
+    background-color: #e3f2fd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.dashboard-menu ul {
+    padding: 0;
+    list-style: none;
+}
+.dashboard-menu .nav-item {
+    margin-bottom: 15px; /* Increased gap */
+}
+.dashboard-menu .nav-link,
+.dashboard-menu a {
+    display: block;
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #0056b3;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+}
+.dashboard-menu .nav-link:hover,
+.dashboard-menu a:hover {
+    background-color: #ff6f61;
+    color: white;
+    transform: translateX(5px);
+    box-shadow: 0 4px 10px rgba(255, 111, 97, 0.3);
+}
+.dashboard-menu .nav-link.active {
+    background-color: #0066cc;
+    color: white;
 }
 
-
- .card {
-   border-radius: 10px;
-   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-   margin-bottom: 20px;
- }
-
-
- .card-header {
-   background-color: #487379;
-   color: white;
-   border-radius: 10px 10px 0 0;
- }
-
-
- .btn-success {
-   background-color: #577194;
-   border-color: #6bb87d;
- }
-
-
- .btn-success:hover {
-   background-color: #506955;
- }
-
-
- .form-group {
-   margin-bottom: 15px;
- }
-
-
- .required {
-   color: red;
- }
-
-
-  @media (max-width: 768px) {
-   .dashboard-menu {
-     padding: 10px;
-   }
-
-
-   .card {
-     margin-bottom: 15px;
-   }
- }
- .page-header.breadcrumb-wrap {
- background-color: #eee2e9;
- padding: 15px 0;
-}
-
-
-.breadcrumb {
- display: flex;
- align-items: center;
- font-family: 'Arial', sans-serif;
- font-size: 16px;
- color: #121311;
-}
-
-
-.breadcrumb a {
- color: #007bff;
- text-decoration: none;
- position: relative;
- margin: 0 5px;
-}
-
-
-.breadcrumb a:hover {
- color: #0056b3;
-}
-
-
-.breadcrumb span {
- margin: 0 5px;
- color: #999;
-}
-
-
-.breadcrumb a::after {
- content: '';
- position: absolute;
- width: 100%;
- height: 2px;
- background: #6e6e3a;
- left: 0;
- bottom: -2px;
- transform: scaleX(0);
- transition: transform 0.3s ease;
-}
-
-
-.breadcrumb a:hover::after {
- transform: scaleX(1);
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-menu {
+        text-align: center;
+    }
+    .dashboard-menu .nav-link {
+        font-size: 14px;
+        padding: 10px;
+    }
 }
 </style>
 
-
 <main class="main">
- <div class="page-header breadcrumb-wrap mb-3">
-   <div class="container">
-     <div class="breadcrumb">
-       <a href="/" rel="nofollow">Home</a>
-       <span></span> <a href="/userProfile">Profile</a> 
-     </div>
-   </div>
- </div>
-  <section class="pt-10 pb-10">
-   <div class="container">
-     <div class="row">
-       <div class="col-lg-10 m-auto">
-         <div class="row">
-           <div class="col-md-4">
-             <div class="dashboard-menu">
-               <ul class="nav flex-column" role="tablist">
-                 <li class="nav-item">
-                   <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" >
-                     <i class="fi-rs-settings-sliders mr-10"></i>Dashboard
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a href="/addressmanagement">
-                    <i class="fi-rs-marker mr-10"></i>My Address
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                  <a href="/orderdetails"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
-                 </li>
-                 <li class="nav-item">
-                   <a href="/wallet"><i class="fi-rs-shopping-cart-check mr-10"></i>Wallet</a>
-                 </li>
-                
-                 <li class="nav-item">
-                   <a  href="/logout">
-                     <i class="fi-rs-sign-out mr-10"></i>Logout
-                   </a>
-                 </li>
-               </ul>
-             </div>
-           </div>
-           <div class="col-md-8">
-             <div class="tab-content dashboard-content">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/" rel="nofollow">Home</a> 
+                <span> > </span> <a href="/userProfile">Profile</a> 
+            </div>
+        </div>
+    </div>
 
+    <section class="pt-4 pb-4">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Menu -->
+                <div class="col-md-4">
+                    <div class="dashboard-menu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#dashboard">
+                                    <i class="fi-rs-settings-sliders"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/addressmanagement">
+                                    <i class="fi-rs-marker"></i> My Address
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/orderdetails">
+                                    <i class="fi-rs-shopping-bag"></i> Orders
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/wallet">
+                                    <i class="fi-rs-wallet"></i> Wallet
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/logout">
+                                    <i class="fi-rs-sign-out"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
-               <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
-                 <div class="card card-green">
-                   <div class="card-header">
-                     <h5 class="mb-0 text-center">User Profile</h5>
-                   </div>
-                   <div class="card-body text-center">
-                     <h5 class="card-title"> <%=user.name%></h5>
-                     <p class="card-text">
-                       <strong>Phone:<%=user.phone%></strong>
-                     </p>
-                     <p class="card-text">
-                       <strong>Email:<%=user.email%></strong>
-                     </p>
-                     <a href="/loadchangepassword" class="btn btn-sm btn-success">Change Password</a>
-                   </div>
-                 </div>
-               </div>
+                <!-- Main Content -->
+                <div class="col-md-8">
+                    <div class="tab-content dashboard-content">
+                        <!-- Profile Section -->
+                        <div class="tab-pane fade show active" id="dashboard">
+                            <div class="card card-green">
+                                <div class="card-header">User Profile</div>
+                                <div class="card-body text-center">
+                                    <h5><%= user.name %></h5>
+                                    <p><strong>Phone: </strong><%= user.phone %></p>
+                                    <p><strong>Email: </strong><%= user.email %></p>
+                                    <a href="/loadchangepassword" class="btn-custom">Change Password</a>
+                                </div>
+                            </div>
+                        </div>
 
+                        <!-- Address Section -->
+                        <div class="tab-pane fade" id="address">
+                            <div class="row">
+                                <% if (userAddress) { %>
+                                    <% userAddress.address.forEach((address) => { %>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header"><%= address.addressType %></div>
+                                                <div class="card-body">
+                                                    <address>
+                                                        <%= address.name %><br>
+                                                        <%= address.city %>, <%= address.landMark %><br>
+                                                        <%= address.state %>, <%= address.pincode %><br>
+                                                        <%= address.phone %> | <%= address.altPhone %>
+                                                    </address>
+                                                    <div class="d-flex justify-content-between">
+                                                        <a href="/editAddress?id=<%= address._id %>" class="btn-custom">Edit</a>
+                                                        <a href="/deleteAddress?id=<%= address._id %>" class="btn-custom" onclick="return confirm('Are you sure to delete this address?')">Delete</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                <% } else { %>
+                                    <p>No address found.</p>
+                                <% } %>
+                                <div class="col-12 text-center mt-3">
+                                    <a href="/addaddress" class="btn-custom">Add Address</a>
+                                </div>
+                            </div>
+                        </div>
 
-               <div
-                 class="tab-pane fade"
-                 id="address"
-                 role="tabpanel"
-                 aria-labelledby="address-tab"
-               >
-                 <div class="row">
-                  <%if(userAddress){%>
-                    <%userAddress.address.forEach((address)=>{%>
-                
-                   <div class="col-lg-6">
-                     <div class="card mb-3 mb-lg-0">
-                       <div class="card-header">
-                         <h5 class="mb-0"><%=address.addressType%></h5>
-                       </div>
-
-
-                       <div class="card-body">
-                         <address>
-                         <%=address.name%><br/>
-                         <%=address.city%><br/>
-                         <%=address.landMark%><br/>
-                         <%=address.state%><br/>
-                        
-                         </address>
-                         <p><%=address.pincode%></p>
-                         <p><%=address.phone%></p>
-                         <p><%=address.altPhone%></p>
-                      
-                         <div class="d-flex justify-content-between">
-                           <a href="/editAddress?id=<%=address._id%>" class="btn-small">Edit</a>
-                           <a href="/deleteAddress?id=<%=address._id%>" class="btn-small" onclick="confirm('Are you sure to delete this address?')">Delete</a>
-                         </div>
-                        
-                       </div>
-                     </div>
-                   </div>
-                   <%})%><%}else{%>
-                
-                   <div class="col-lg-6">
-                     <div class="card mb-3 mb-lg-0">
-                       <div class="card-header">
-                         <h5 class="mb-0"></h5>
-                       </div>
-                       <div class="card-body">
-                         <address>No address</address>
-                       </div>
-                     </div>
-                   </div>
-                   <%}%>
-              
-                   <div>
-                     <a href="/addaddress">
-                       <button class="btn btn-primary w-70">
-                         Add address
-                       </button>
-                     </a>
-                   </div>
-                 </div>
-               </div>
-
-
-
-               <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Wallet</h5>
-                   </div>
-                   <div class="card-body contact-from-area">
-                     <div class="row">
-                       <div class="col-lg-8 mx-auto text-center mt-90">
-                        <h3>Balance: ₹<%= walletBalance %></h3>
-                        <form action="/top-up " method="POST">
-                          <label for="amount">Add Money:</label>
-                          <input type="number" id="amount" name="amount" min="1" required />
-                          <button type="submit">Add Money</button>
-                      </form>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-
-               <div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Wallet History</h5>
-                   </div>
-                   <div class="card-body">
-                     <div class="table-responsive">
-                       <table class="table">
-                         <thead>
-                           <tr>
-                             <th>Date</th>
-                             <th>Status</th>
-                             <th>Amount</th>
-                             <th>Description</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                          <% walletTransactions.forEach((transaction) => { %>
-                           <tr>
-                            <td><%= transaction.date.toDateString()  %></td>
-                             <td><%= transaction.type %></td>
-                             <td>₹<%= transaction.amount %> </td>
-                            
-                             <td><%= transaction.description %></td>
-                           </tr>
-                           <% }) %>
-                         </tbody>
-                       </table>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-
-               <div class="tab-pane fade" id="referal" role="tabpanel" aria-labelledby="track-orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Referal</h5>
-                   </div>
-                   <div class="card-body">
-                     <h6 class="mb-3">Refer your friends and earn money!</h6>
-                     <p>Share this link: <strong>></strong></p>
-                     <p>Earned: ₹</p>
-                   </div>
-                 </div>
-               </div>
-       </div>
-     </div>
-   </div>
- </section>
+                        <!-- Wallet Section -->
+                        <div class="tab-pane fade" id="wallet">
+                            <div class="card">
+                                <div class="card-header">Wallet</div>
+                                <div class="card-body text-center">
+                                    <h3>Balance: ₹<%= walletBalance %></h3>
+                                    <form action="/top-up" method="POST">
+                                        <label for="amount">Add Money:</label>
+                                        <input type="number" id="amount" name="amount" min="1" required />
+                                        <button type="submit" class="btn-custom">Add Money</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
+
 <%- include("../partials/user/footer.ejs") %>
-
-
-
-

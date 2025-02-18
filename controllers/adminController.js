@@ -16,7 +16,7 @@ const loadlogin = async(req,res)=>{
         res.render('adminlogin')
         
     } catch (error) {
-        
+        res.redirect('/pagenotfound')
     }
 }
 
@@ -100,49 +100,56 @@ const userserech=async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server error');
+        res.status(500).json({success:false,message :"User not found"});
     }
 }
 
-const categoryserch= async (req, res) => {
-    try {
-      const search = req.query.search || ""; // Get the search term
-      const currentPage = parseInt(req.query.page) || 1;
-      const itemsPerPage = 10;
+// const categoryserch= async (req, res) => {
+//     try {
+//       const search = req.query.search || ""; // Get the search term
+//       const currentPage = parseInt(req.query.page) || 1;
+//       const itemsPerPage = 10;
   
-      // Search query using regex to match category names
-      const query = search
-        ? {
-            name: { $regex: search, $options: "i" }, // 'i' for case-insensitive search
-          }
-        : {};
+//       // Search query using regex to match category names
+//       const query = search
+//         ? {
+//             name: { $regex: search, $options: "i" }, // 'i' for case-insensitive search
+//           }
+//         : {};
   
-      // Pagination logic
-      const totalCategories = await Category.countDocuments(query);
-      const totalPages = Math.ceil(totalCategories / itemsPerPage);
-      const categories = await Category.find(query)
-        .skip((currentPage - 1) * itemsPerPage)
-        .limit(itemsPerPage);
+//       // Pagination logic
+//       const totalCategories = await Category.countDocuments(query);
+//       const totalPages = Math.ceil(totalCategories / itemsPerPage);
+//       const categories = await Category.find(query)
+//         .skip((currentPage - 1) * itemsPerPage)
+//         .limit(itemsPerPage);
   
-      res.render("catogary_management", {
-        data: categories,
-        totalPages,
-        currentPage,
-        search,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Server error");
-    }
-  }
+//       res.render("catogary_management", {
+//         data: categories,
+//         totalPages,
+//         currentPage,
+//         search,
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({success:false,message:"category not found"})
+//     }
+//   }
 
   const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find().populate("userId").sort({ createdAt: -1 });  // Sorting by date descending
-        res.render("orders", { orders });
+        const page=parseInt(req.query.page)||1;
+        const limit=5;
+        const skip=(page-1)*limit;
+
+        const totalOrders=await Order.find().countDocuments();
+        const orders = (await Order.find().populate("userId").sort({ createdAt: -1 }).skip(skip).limit(limit));  // Sorting by date descending
+        const totalPages=Math.ceil(totalOrders/limit)
+        res.render("orders", { orders,currentPage:page,totalPages });
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Failed to fetch orders" });
+       res.redirect('/pagenotfound')
     }
 };
 
@@ -202,83 +209,7 @@ const getAllProducts = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch products" });
     }
 };
-const showAddProductForm = (req, res) => {
-    res.render("adddProduct");
-};
 
-const addProduct = async (req, res) => {
-    try {
-        const { name, description, price, category, stock, imageUrl } = req.body;
-        
-        const newProduct = new Product({
-            name,
-            description,
-            price,
-            category,
-            stock,
-            imageUrl,
-        });
-
-        await newProduct.save();
-        res.redirect("/admin/inventory");
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to add product" });
-    }
-};
-
-const showEditProductForm = async (req, res) => {
-    try {
-        const { productId } = req.params;
-        const product = await Product.findById(productId);
-        if (!product) {
-            return res.status(404).json({ error: "Product not found" });
-        }
-        res.render("edditProduct", { product });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to fetch product for editing" });
-    }
-};
-const editProduct = async (req, res) => {
-    try {
-        const { productId } = req.params;
-        const { name, description, price, category, stock, imageUrl } = req.body;
-
-        const product = await Product.findByIdAndUpdate(productId, {
-            name,
-            description,
-            price,
-            category,
-            stock,
-            imageUrl,
-        }, { new: true });
-
-        if (!product) {
-            return res.status(404).json({ error: "Product not found" });
-        }
-
-        res.redirect("/admin/inventory");
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to update product" });
-    }
-};
-const deleteProduct = async (req, res) => {
-    try {
-        const { productId } = req.params;
-        const product = await Product.findByIdAndDelete(productId);
-
-        if (!product) {
-            return res.status(404).json({ error: "Product not found" });
-        }
-
-        res.redirect("/admin/inventory");
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to delete product" });
-    }
-};
 
 const listCoupons = async(req,res)=>{
     try {
@@ -299,11 +230,12 @@ const createCoupons = async (req, res) => {
         }
 
         const { filename } = req.file;
+        const today= new Date();
 
         const newCoupon = new Coupon({
             code,
             discountPercentage,
-            startDate,
+            startDate: today,
             endDate,
             couponImage: filename,
             minPurchaseAmount, // Add this
@@ -336,18 +268,18 @@ module.exports={
     login,
     loaddashBoard,
     userserech,
-    categoryserch,
+    // categoryserch,
     pagenotfound,
     logout,
     getAllOrders,
     getOrderDetails,
     updateOrderStatus,
     getAllProducts,
-    showAddProductForm,
-    addProduct,
-    showEditProductForm,
-    editProduct,
-    deleteProduct,
+        // showAddProductForm,
+        // addProduct,
+        // showEditProductForm,
+        // editProduct,
+        // deleteProduct,
     listCoupons,
     createCoupons,
     deletCoupens

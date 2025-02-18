@@ -1,23 +1,38 @@
 <%- include("../partials/admin/header.ejs") %>
+
 <head>
     <title>Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body class="bg-gray-100 text-gray-800">
     <div class="container mx-auto p-6">
         <h1 class="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
-        
+
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 class="text-xl font-semibold mb-3">Sales Report</h2>
-            <select id="filter" class="p-2 border rounded-md mb-4">
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-                <option value="weekly">Weekly</option>
-            </select>
+            
+           
+            <div class="flex flex-wrap gap-4 mb-4">
+                <select id="filter" class="p-2 border rounded-md">
+                    <option value="today">Today</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="custom">Custom Date Range</option>
+                </select>
+
+               
+                <input type="date" id="startDate" class="p-2 border rounded-md hidden" max="">
+                <input type="date" id="endDate" class="p-2 border rounded-md hidden" max="">
+                <button id="applyFilter" class="p-2 bg-blue-500 text-white rounded-md hidden">Apply</button>
+            </div>
+
             <canvas id="salesChart" class="w-full"></canvas>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-xl font-semibold mb-3">Best Selling Products</h2>
@@ -33,26 +48,30 @@
             </div>
         </div>
     </div>
-
     <script>
         let salesChart, productChart, brandChart, categoryChart;
-
+    
         async function fetchData(url) {
             const res = await fetch(url);
             return res.json();
         }
-
+    
         function destroyChart(chart) {
             if (chart) {
                 chart.destroy();
             }
         }
-
-        async function loadSalesChart(filter = 'monthly') {
-            const data = await fetchData(`/admin/sales-report?filter=${filter}`);
+    
+        async function loadSalesChart(filter = 'monthly', startDate = "", endDate = "") {
+            let url = `/admin/sales-report?filter=${filter}`;
+            if (filter === "custom" && startDate && endDate) {
+                url += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+    
+            const data = await fetchData(url);
             const labels = data.map(item => item._id);
             const values = data.map(item => item.totalSales);
-            
+    
             destroyChart(salesChart);
             salesChart = new Chart(document.getElementById('salesChart'), {
                 type: 'line',
@@ -62,47 +81,107 @@
                 }
             });
         }
-
+    
         async function loadBestSellingProducts() {
             const data = await fetchData('/admin/best-selling-products');
             const labels = data.map(item => item.productName);
             const values = data.map(item => item.totalSold);
-            
+    
             destroyChart(productChart);
             productChart = new Chart(document.getElementById('bestSellingProductsChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'red' }] }
             });
         }
-
+    
         async function loadBestSellingBrands() {
             const data = await fetchData('/admin/best-selling-brands');
             const labels = data.map(item => item._id);
             const values = data.map(item => item.totalSold);
-            
+    
             destroyChart(brandChart);
             brandChart = new Chart(document.getElementById('bestSellingBrandsChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'green' }] }
             });
         }
-
+    
         async function loadBestSellingCategories() {
             const data = await fetchData('/admin/best-selling-categories');
             const labels = data.map(item => item.categoryName);
             const values = data.map(item => item.totalSold);
-            
+    
             destroyChart(categoryChart);
             categoryChart = new Chart(document.getElementById('bestSellingCategoriesChart'), {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Units Sold', data: values, backgroundColor: 'blue' }] }
             });
         }
-
+    
+       
+        function setMaxDate() {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("startDate").setAttribute("max", today);
+            document.getElementById("endDate").setAttribute("max", today);
+        }
+    
         document.getElementById('filter').addEventListener('change', (e) => {
-            loadSalesChart(e.target.value);
+            const filter = e.target.value;
+            const startDateInput = document.getElementById("startDate");
+            const endDateInput = document.getElementById("endDate");
+            const applyButton = document.getElementById("applyFilter");
+    
+            if (filter === "custom") {
+                startDateInput.classList.remove("hidden");
+                endDateInput.classList.remove("hidden");
+                applyButton.classList.remove("hidden");
+            } else {
+                startDateInput.classList.add("hidden");
+                endDateInput.classList.add("hidden");
+                applyButton.classList.add("hidden");
+                loadSalesChart(filter);
+            }
         });
-
+    
+        document.getElementById('applyFilter').addEventListener('click', () => {
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+    
+            if (!startDate || !endDate) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Invalid Date Selection",
+                    text: "Please select both start and end dates.",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+    
+            if (new Date(startDate) > new Date() || new Date(endDate) > new Date()) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Date!",
+                    text: "Future dates are not allowed. Please select a past date.",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+    
+            if (new Date(startDate) > new Date(endDate)) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Range",
+                    text: "Start date cannot be later than the end date.",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+    
+            loadSalesChart("custom", startDate, endDate);
+        });
+    
+    
+        setMaxDate();
         loadSalesChart();
         loadBestSellingProducts();
         loadBestSellingBrands();

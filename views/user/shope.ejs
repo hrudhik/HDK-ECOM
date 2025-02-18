@@ -19,6 +19,7 @@
       cursor: pointer;
     }
 </style>
+
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -28,26 +29,28 @@
             </div>
         </div>
     </div>
+
     <section class="mt-50 mb-50">
-        <div class="search-bar">
-            <form method="GET" action="/search">
-              <input
-                type="text"
-                name="query"
-                placeholder="Search products..."
-                value="<%= typeof query !== 'undefined' ? query : '' %>"
-              />
-              <button type="submit">Search</button>
-            </form>
-          </div>
-      
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
+                    <!-- Search Bar -->
+                    <div class="search-bar">
+                        <form method="GET" action="/shope">
+                            <input type="text" name="query" placeholder="Search products..." value="<%= searchQuery || '' %>" />
+                            <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+                            <input type="hidden" name="priceRange" value="<%= selectedPriceRange || '' %>">
+                            <input type="hidden" name="sort" value="<%= selectedSort || '' %>">
+                            <button type="submit">Search</button>
+                        </form>
+                    </div>
+
                     <div class="shop-product-fillter">
                         <div class="totall-product">
-                            <p> We found <strong class="text-brand"><%=totalProducts%></strong> items for you!</p>
+                            <p> We found <strong class="text-brand"><%= totalProducts %></strong> items for you!</p>
                         </div>
+
+                        <!-- Sort By Options -->
                         <div class="sort-by-product-area">
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
@@ -60,125 +63,101 @@
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                       
-                                        <li><a href="/shop?sort=lowToHigh<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">Price low to heigh</a></li>
-
-                                       
-                                        <li><a href="/shop?sort=highToLow<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">Price heigh to low</a></li>
-
-                                        <li><a href="/shop?sort=aToZ<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">aA to zZ</a></li>
-                                        <li><a href="/shop?sort=ZToa<%= typeof category !== 'undefined' ? '&category=' + category : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>">zZ to aA</a></li>
-                                        <li><a href="/shope">All</a></li>
+                                        <li><a href="/shope?sort=lowToHigh&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Price low to high</a></li>
+                                        <li><a href="/shope?sort=highToLow&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Price high to low</a></li>
+                                        <li><a href="/shope?sort=aToZ&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">A to Z</a></li>
+                                        <li><a href="/shope?sort=zToA&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Z to A</a></li>
                                     </ul>
                                 </div>
                             </div>
+
+                            <!-- Category Filter -->
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Fillter By :</span>
+                                        <span><i class="fi-rs-apps"></i>Filter By :</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
-                                        <span> Category<i class="fi-rs-angle-small-down"></i></span>
+                                        <span>Category <i class="fi-rs-angle-small-down"></i></span>
                                     </div>
                                 </div>
                                 <div class="sort-by-dropdown">
-
                                     <ul>
-                                        <li><a  href="/shope ">All</a></li>
-
-                                        
-                                        <%for(let i=0;i<category.length;i++){%>
-                                        
-                                        <li> <a href="/shop?category=<%= category[i]._id %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %><%= typeof priceRange !== 'undefined' ? '&priceRange=' + priceRange : '' %>"><%=category[i].name%></a></li>
-                                         
-                                         <%}%>
+                                        <li><a href="/shope?query=<%= searchQuery %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">All</a></li>
+                                        <% for(let i = 0; i < category.length; i++) { %>
+                                            <li>
+                                                <a href="/shope?category=<%= category[i]._id %>&query=<%= searchQuery %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>"><%= category[i].name %></a>
+                                            </li>
+                                        <% } %>
                                     </ul>
                                 </div>
                             </div>
+
+                            <!-- Price Range Filter -->
                             <div class="sort-by-cover">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps-sort"></i>Fillter By :</span>
+                                        <span><i class="fi-rs-apps-sort"></i>Filter By :</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
-                                        <span> Price <i class="fi-rs-angle-small-down"></i></span>
+                                        <span>Price <i class="fi-rs-angle-small-down"></i></span>
                                     </div>
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a href="/shope">All</a></li>
-                                        <li> <a href="/shop?priceRange=500-1000&category=<%= "" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">500-1000</a></li>
-                                        <li> <a href="/shop?priceRange=1000-5000&category=<%="" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">1000-5000</a></li>
-                                        <li> <a href="/shop?priceRange=5000-10000&category=<%= "" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>">5000-10000</a></li>
-                                        <li> <a href="/shop?priceRange=10000&category=<%="" %><%= typeof sort !== 'undefined' ? '&sort=' + sort : '' %>"></a>10000</li>
+                                        <li><a href="/shope?query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">All</a></li>
+                                        <li><a href="/shope?priceRange=500-1000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹500 - ₹1000</a></li>
+                                        <li><a href="/shope?priceRange=1000-5000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹1000 - ₹5000</a></li>
+                                        <li><a href="/shope?priceRange=5000-10000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹5000 - ₹10000</a></li>
                                     </ul>
-                                    
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Product List -->
                     <div class="row product-grid-4">
-                        <% for (let i = 0; i <products.length ; i++) { %>
-                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                    <div class="product-cart-wrap mb-30">
-                        <div class="product-img-action-wrap">
-                            <div class="product-img product-img-zoom">
-                                <a href="/productDetails?id=<%= products[i]._id %>">
-                         <!-- <img class="default-img" src="/public/assets/product-images/ products[i].productImages[0] %>" alt="<%= products[i].productName %>"> -->
-                         <img class="default-img" src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
-    
-                                </a>
+                        <% for (let i = 0; i < products.length; i++) { %>
+                            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                <div class="product-cart-wrap mb-30">
+                                    <div class="product-img-action-wrap">
+                                        <div class="product-img product-img-zoom">
+                                            <a href="/productDetails?id=<%= products[i]._id %>">
+                                                <img class="default-img" src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
+                                            </a>
+                                        </div>
+                                        <div class="product-action-1">
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishlist('<%= products[i]._id %>')">
+                                                <i class="fi-rs-heart"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="product-content-wrap">
+                                        <h2><a href="/productDetails?id=<%= products[i]._id %>"><%= products[i].productName %></a></h2>
+                                        <div class="product-price">
+                                            <span>₹<%= products[i].salePrice %></span>
+                                            <span class="old-price">₹<%= products[i].regularPrice %></span>
+                                        </div>
+                                        <div class="product-action-1 show">
+                                            <a aria-label="Add To Cart" class="action-btn hover-up" onclick=" addToCart('<%=products[i]._id%>')">
+                                                <i class="fi-rs-shopping-bag-add"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="product-action-1">
-                                
-                                <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishlist('<%= products[i]._id %>')">
-                                    <i class="fi-rs-heart"></i>
-                                </a>
-                                
-                            </div>
-                            <!-- <div class="product-badges product-badges-position product-badges-mrg">
-                                <span class="hot"></span>
-                            </div> -->
-                        </div>
-                        <div class="product-content-wrap">
-                            <div class="product-category">
-                                <a href="shop-grid-right.html"><%= products[i].brand %></a>
-                            </div>
-                            <h2><a href="shop-product-right.html"><%= products[i].productName %></a></h2>
-                            <div class="rating-result" title="90%">
-                                <span><span></span></span>
-                            </div>
-                            <div class="product-price">
-                                <span>₹<%= products[i].salePrice %></span>
-                                <span class="old-price">₹<%= products[i].regularPrice %></span>
-                            </div>
-                            <div class="product-action-1 show">
-                                <a aria-label="Add To Cart" class="action-btn hover-up" onclick=" addToCart('<%=products[i]._id%>')">
-                                    <i class="fi-rs-shopping-bag-add"></i>
-                                </a>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
-                </div>
-                <% } %>
-            </div>
-                    
-                    <!--pagination-->
+
+                    <!-- Pagination -->
                     <div class="pagination">
                         <% if (currentPage > 1) { %>
-                          <a class="btn" href="/shope?page=<%= currentPage - 1 %>">Prev</a>
+                            <a class="btn" href="/shope?page=<%= currentPage - 1 %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">Prev</a>
                         <% } %>
-                   
-                   
                         <% for (let i = 1; i <= totalPages; i++) { %>
-                          <a class="btn <%= currentPage === i ? 'active' : '' %>" href="/shope?page=<%= i %>"><%= i %></a>
+                            <a class="btn <%= currentPage === i ? 'active' : '' %>" href="/shope?page=<%= i %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>"><%= i %></a>
                         <% } %>
-                   
-                   
-                        <% if (currentPage < totalPages) { %>
-                          <a class="btn" href="/shope?page=<%= currentPage + 1 %>">Next</a>
-                        <% } %>
-                      </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -186,6 +165,7 @@
 </main>
 
 <%- include("../partials/user/footer.ejs") %>
+
 
 <script>
 

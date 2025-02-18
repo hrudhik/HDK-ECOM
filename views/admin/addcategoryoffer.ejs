@@ -2,49 +2,50 @@
 
 <style>
     body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    padding: 0;
-}
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
 
-.container {
-    max-width: 600px;
-    margin: 50px auto;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-h2 {
-    color: #333;
-    margin-bottom: 20px;
-}
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
 
-.form-label {
-    font-weight: bold;
-    color: #555;
-}
+    .form-label {
+        font-weight: bold;
+        color: #555;
+    }
 
-.btn-primary {
-    background-color: #007bff;
-    border: none;
-    font-size: 16px;
-}
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        font-size: 16px;
+    }
 
-.btn-primary:hover {
-    background-color: #0056b3;
-}
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
 
-form {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-}
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+    }
 </style>
+
 <div class="container mt-5">
     <h2 class="text-center">Apply Category Offer</h2>
-    <form action="/admin/addCategoryOffer" method="POST" class="p-4 border rounded">
+    <form id="categoryOfferForm" class="p-4 border rounded">
         <div class="mb-3">
             <label for="category" class="form-label">Select Category</label>
             <select name="categoryId" id="category" class="form-control" required>
@@ -55,10 +56,43 @@ form {
         </div> 
         <div class="mb-3">
             <label for="offer" class="form-label">Set Offer Percentage</label>
-            <input type="number" name="offer" id="offer" class="form-control" min="0" max="100" required>
+            <input type="number" name="offer" id="offer" class="form-control" min="1" max="99" required>
         </div>
         <button type="submit" class="btn btn-primary w-100">Apply Offer</button>
     </form>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.getElementById("categoryOfferForm").addEventListener("submit", function(event) {
+    event.preventDefault(); // Prevent form from submitting normally
+
+    const offerInput = document.getElementById("offer").value.trim();
+    const offerValue = parseInt(offerInput);
+
+    if (isNaN(offerValue) || offerValue < 1 || offerValue > 99) {
+        Swal.fire({
+            icon: "error",
+            title: "Invalid Offer",
+            text: "Please enter a valid offer percentage between 1 and 99.",
+            confirmButtonColor: "#d33"
+        });
+        return;
+    }
+
+    // If validation passes, show success message and submit form
+    Swal.fire({
+        icon: "success",
+        title: "Offer Applied",
+        text: "The category offer has been successfully applied!",
+        confirmButtonColor: "#007bff",
+        timer: 2000,
+        showConfirmButton: false
+    }).then(() => {
+        document.getElementById("categoryOfferForm").submit();
+    });
+});
+</script>
 
 <%- include("../partials/admin/footer.ejs") %>

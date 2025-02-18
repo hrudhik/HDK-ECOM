@@ -1,4 +1,11 @@
 <%- include('../partials/user/header.ejs') %>
+<style>
+    .error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}
+</style>
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
@@ -7,18 +14,18 @@
                     <h3>Create an Account</h3>
                 </div>
                 
-                <form id="registration-form" method="post" action="/signup" onsubmit="return validateForm()">
+                <form id="registration-form" method="post" action="/signup" onsubmit="return validateForm(event)">
                     <div class="form-group">
                         <input id="name" type="text" class="form-control" name="name" placeholder="Enter your name">
-                        <span class="error" id="name-error" style="color: red;"></span>
+                        <span class="error" id="name-error"></span>
                     </div>
                     <div class="form-group">
                         <input id="email" type="email" class="form-control" name="email" placeholder="Enter your Email">
-                        <span class="error" id="email-error" style="color: red;"></span>
+                        <span class="error" id="email-error"></span>
                     </div>
                     <div class="form-group">
                         <input id="mobile" type="text" class="form-control" name="phone" placeholder="Enter your Mobile Number">
-                        <span class="error" id="mobile-error" style="color: red;"></span>
+                        <span class="error" id="mobile-error"></span>
                     </div>
                     <div class="form-group">
                         <div class="input-group">
@@ -27,7 +34,7 @@
                                 <i class="bi bi-eye" id="toggle-icon-password">👁️</i>
                             </span>
                         </div>
-                        <span class="error" id="password-error" style="color: red;"></span>
+                        <span class="error" id="password-error"></span>
                     </div>
                     <div class="form-group">
                         <div class="input-group">
@@ -36,16 +43,13 @@
                                 <i class="bi bi-eye" id="toggle-icon-cpassword">👁️</i>
                             </span>
                         </div>
-                        <span class="error" id="cpassword-error" style="color: red;"></span>
+                        <span class="error" id="cpassword-error"></span>
                     </div>
-
-                    <%if(locals.message && message.length>0){%>
+                    <% if (errorMessage) { %>
                         <div class="alert alert-danger text-center">
-                            <%=message%>
+                            <%= errorMessage %>
                         </div>
-                    <%}%>
-
-                    
+                    <% } %>
                     <div class="form-group text-center">
                         <button type="submit" class="btn btn-custom" name="register">Submit & Register</button>
                     </div>
@@ -53,7 +57,7 @@
 
                 <div class="text-center text-muted mt-3">
                     <p>Or</p>
-                    <a href="/auth/google" class="btn btn-google" >
+                    <a href="/auth/google" class="btn btn-google">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" style="width: 20px; margin-right: 8px;">
                         Sign Up with Google
                     </a>
@@ -68,71 +72,117 @@
 </div>
 <%- include('../partials/user/footer.ejs') %>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    function validateForm() {
-        // Clear previous error messages
-        document.querySelectorAll(".error").forEach(error => error.innerText = "");
 
-        let valid = true;
 
-        const name = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const mobile = document.getElementById("mobile").value.trim();
-        const password = document.getElementById("password").value;
-        const cpassword = document.getElementById("cpassword").value;
+// ✅ Extract error message from URL and display it dynamically
+const urlParams = new URLSearchParams(window.location.search);
+    const errorMessage = urlParams.get('errorr');
+    if (errorMessage) {
+        document.querySelector('.alert-danger').innerText = errorMessage;
+    }
+function validateForm(event) {
+    event.preventDefault(); // Prevent default form submission
 
-        if (name === "") {
-            document.getElementById("name-error").innerText = "Name is required.";
-            valid = false;
-        }
+    // Clear previous errors
+    document.querySelectorAll(".error").forEach(error => error.innerText = "");
 
-        if (email === "") {
-            document.getElementById("email-error").innerText = "Email is required.";
-            valid = false;
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            document.getElementById("email-error").innerText = "Invalid email format.";
-            valid = false;
-        }
+    let valid = true;
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const mobile = document.getElementById("mobile").value.trim();
+    const password = document.getElementById("password").value;
+    const cpassword = document.getElementById("cpassword").value;
 
-        if (mobile === "") {
-            document.getElementById("mobile-error").innerText = "Mobile number is required.";
-            valid = false;
-        } else if (!/^\d{10}$/.test(mobile)) {
-            document.getElementById("mobile-error").innerText = "Enter a valid 10-digit mobile number.";
-            valid = false;
-        }
+    // Regular Expressions
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;  // Accepts ANY valid email
+    const phonePattern = /^[6-9]\d{9}$/; // Valid Indian mobile number (starts with 6-9)
+    const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/; // Strong password
 
-        if (password === "") {
-            document.getElementById("password-error").innerText = "Password is required.";
-            valid = false;
-        } else if (password.length < 6) {
-            document.getElementById("password-error").innerText = "Password must be at least 6 characters.";
-            valid = false;
-        }
-
-        if (cpassword === "") {
-            document.getElementById("cpassword-error").innerText = "Confirm Password is required.";
-            valid = false;
-        } else if (cpassword !== password) {
-            document.getElementById("cpassword-error").innerText = "Passwords do not match.";
-            valid = false;
-        }
-
-        return valid; // Prevent form submission if validation fails
+    // Validate Name (only letters and spaces allowed)
+    if (name === "") {
+        showError("name-error", "Name is required.");
+        valid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+        showError("name-error", "Name must contain only letters.");
+        valid = false;
     }
 
-    function togglePasswordVisibility(fieldId) {
-        const field = document.getElementById(fieldId);
-        const icon = document.querySelector(`#toggle-icon-${fieldId}`);
-        if (field.type === "password") {
-            field.type = "text";
-            icon.className = "bi bi-eye-slash";
-        } else {
-            field.type = "password";
-            icon.className = "bi bi-eye";
+    // Validate Email
+    if (email === "") {
+            showError("email-error", "Email is required.");
+            valid = false;
+        } else if (!email.match(emailPattern)) {
+            showError("email-error", "Enter a valid email address.");
+            valid = false;
         }
+
+    // Validate Mobile Number
+    if (mobile === "") {
+        showError("mobile-error", "Mobile number is required.");
+        valid = false;
+    } else if (!phonePattern.test(mobile)) {
+        showError("mobile-error", "Enter a valid 10-digit mobile number (starting with 6-9).");
+        valid = false;
     }
 
-  
+    // Validate Password
+    if (password === "") {
+        showError("password-error", "Password is required.");
+        valid = false;
+    } else if (/\s/.test(password)) {
+        showError("password-error", "Password cannot contain spaces.");
+        valid = false;
+    } else if (!passwordPattern.test(password)) {
+        showError("password-error", "Password must be 8+ characters, include a letter, a number, and a special character.");
+        valid = false;
+    }
+
+    // Validate Confirm Password
+    if (cpassword === "") {
+        showError("cpassword-error", "Confirm Password is required.");
+        valid = false;
+    } else if (cpassword !== password) {
+        showError("cpassword-error", "Passwords do not match.");
+        valid = false;
+    }
+
+    if (valid) {
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "Registration successful!",
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            event.target.submit(); // Submit form if valid
+        });
+    }
+    return valid;
+}
+
+// Function to show error messages
+function showError(elementId, message) {
+    document.getElementById(elementId).innerText = message;
+    Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: message
+    });
+}
+
+// Toggle Password Visibility
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.querySelector(`#toggle-icon-${fieldId}`);
+    if (field.type === "password") {
+        field.type = "text";
+        icon.textContent = "🙈"; 
+    } else {
+        field.type = "password";
+        icon.textContent = "👁️";
+    }
+}
 </script>

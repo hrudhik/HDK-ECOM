@@ -227,88 +227,110 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <%- include("../partials/admin/footer.ejs") %>
 
+
   <script>
-       const categoryForm = document.getElementById('categoryForm');
+    document.addEventListener("DOMContentLoaded", function () {
+        const categoryForm = document.getElementById("categoryForm");
 
-categoryForm.addEventListener('submit', async (event) => {
-  event.preventDefault(); // Prevent form from submitting normally
+        categoryForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            
+            const formData = new FormData(categoryForm);
+            const categoryName = formData.get("name").trim();
+            const description = formData.get("description").trim();
 
-  const formData = new FormData(categoryForm);
-  const data = Object.fromEntries(formData.entries()); // Convert FormData to JSON-like object
+            if (!categoryName || !description) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Invalid Input",
+                    text: "Both category name and description are required!",
+                });
+                return;
+            }
 
+            try {
+                const response = await fetch("/admin/addCatogary", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: categoryName, description }),
+                });
 
-    const response = await fetch('/admin/addCatogary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+                const result = await response.json();
+
+                if (result.status) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Category Created",
+                        text: result.message,
+                        timer: 2000
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Something went wrong! Try again later.",
+                });
+            }
+        });
     });
 
-    const result = await response.json();
+    async function deleteCategory(categoryId) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This category will be permanently deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/deleteCategory?id=${categoryId}`, {
+                        method: "DELETE",
+                    });
 
-    // Show SweetAlert
-    Swal.fire({
-      icon: 'error', // 'success', 'error', etc.
-      title: result.message,
-      text:'Category already exist'
-    });
+                    const result = await response.json();
+                    if (result.status) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted!",
+                            text: result.message,
+                            timer: 2000
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: result.message,
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Something went wrong! Try again later.",
+                    });
+                }
+            }
+        });
+    }
+
+
+
  
-   
-  
-});
-
-
-
-
-
-
-
-
-
-//     function formsubmition(event){
-
-// event.preventDefault();
-// if(!validateForm()){
-//     return
-// }
-// const name=document.getElementsByClassName("name")[0].value;
-// const description=document.getElementById("descriptionId").value;
-// fetch('/admin/addCatogary',{
-//   method:'POST',
-//   headers:{
-//     'content-type':"application/json"
-//   },
-//   body:JSON.stringify({name,description})
-// })
-// .then(response=>{
-//   if(!response.ok){
-//     return response.json().then(err=>{
-//       throw new Error(err.error);
-//     })
-//   }
-//   return response.json();
-// })
-// .then(data=>{
-//   location.reload();
-// })
-// .catch(error=>{
-//   if(error.message === "Category already exist "){
-//     Swal.fire({
-//       icon:'error',
-//       title:'Opps',
-//       text:'Category already exist'
-//     })
-//   }else{
-//     Swal.fire({
-//       icon:'error',
-//       title:'Oops',
-//       text:"An error occured while adding the category",
-//     })
-//   }
-// })
-// }
-// Make an API call to remove the category offer
 async function removeCategoryOffer(categoryId) {
   try {
     const response = await fetch('/admin/removeCategoryOffer', {
@@ -327,7 +349,11 @@ async function removeCategoryOffer(categoryId) {
         icon: 'success',
         title: 'Success',
         text: result.message,
+        timer:3000
       });
+      setTimeout(()=>{
+        location.reload()
+      },2000)
     } else {
       // Show error alert
       Swal.fire({
@@ -350,99 +376,53 @@ async function removeCategoryOffer(categoryId) {
 
 
 
-function validateForm(name, description) {
-      let isValid = true;
+// function validateForm(name, description) {
+//       let isValid = true;
 
-      // Name validation
-      if (!name) {
-        document.getElementById("nameError").textContent = "Category name is required.";
-        isValid = false;
-      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-        document.getElementById("nameError").textContent = "Category name must contain only letters.";
-        isValid = false;
-      }
+//       // Name validation
+//       if (!name) {
+//         document.getElementById("nameError").textContent = "Category name is required.";
+//         isValid = false;
+//       } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+//         document.getElementById("nameError").textContent = "Category name must contain only letters.";
+//         isValid = false;
+//       }
 
-      // Description validation
-      if (!description) {
-        document.getElementById("descriptionError").textContent = "Description is required.";
-        isValid = false;
-      }
+//       // Description validation
+//       if (!description) {
+//         document.getElementById("descriptionError").textContent = "Description is required.";
+//         isValid = false;
+//       }
 
-      return isValid;
-    }
-
-
-    function displayErrorMessage(elementId,message){
-     var errorElement = document.getElementById(elementId);
-     errorElement.innerText=message;
-     errorElement.style.display="block";
-
-    }
-
-    function clearErrorMessage(){
-     const errorElements=document.getElementsByName("error-message");
-     Array.from(errorElements).forEach((element)=>{
-       element.innerText="";
-       element.style.display="none"
-     })
-    }
-
-    async function addOffer(categoryId){
-      const errorElements=document.getElementsByClassName('error-message');
-      Array.from(errorElements).forEach((element)=>{
-        element.innerText="";
-        element.style.display='none';
-      })
-    }
+//       return isValid;
+//     }
 
 
-    // async function addOffer(categoryId){
-    //   const {value:amount}=await Swal.fire({
-    //     title:"Offer in percentage",
-    //     inout:"number",
-    //     inputLabel:"percentage",
-    //     inputPlaceholder:"5",
-    //   })
+//     function displayErrorMessage(elementId,message){
+//      var errorElement = document.getElementById(elementId);
+//      errorElement.innerText=message;
+//      errorElement.style.display="block";
+
+//     }
+
+//     function clearErrorMessage(){
+//      const errorElements=document.getElementsByName("error-message");
+//      Array.from(errorElements).forEach((element)=>{
+//        element.innerText="";
+//        element.style.display="none"
+//      })
+//     }
+
+//     async function addOffer(categoryId){
+//       const errorElements=document.getElementsByClassName('error-message');
+//       Array.from(errorElements).forEach((element)=>{
+//         element.innerText="";
+//         element.style.display='none';
+//       })
+//     }
 
 
-    //   if(amount){
-
-    //     try {
-    //       const response=await fetch("/admin/addCategoryOffer",{
-    //         method:"POST",
-    //         headers:{
-    //            'content-type ':"application/json",
-                           
-    //         },
-    //         body:JSON.stringify({
-    //           percentage:amount,
-    //           categoryId:categoryId,
-               
-    //         }),
-    //       });
-    //       const data= await response.json();
-    //       if(response.ok && data.status === true){
-    //         swal.fire(
-    //            "Offer added",
-    //            "The Offer has been added",
-    //            "success"
-    //         ).then(()=>{
-    //           location.reload()
-    //         })
-    //       }else{
-    //         Swal.fire("faild",data.message|| "adding offer failde ", "error");
-    //       }
-    //     } catch (error) {
-    //       Swal.fire(
-    //         "Error",
-    //         "An error occured adding the offer ",
-    //         "error",
-    //       )
-    //       console.log("error in adding offer",error )
-    //     }
-    //   }
-    // }
-
+ 
 
 
 

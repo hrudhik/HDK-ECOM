@@ -75,8 +75,8 @@ const categogtyInfo = async (req, res) => {
         res.render('categary_management', {
             cat: carogaryData,
             currentPage: page,
-            totalPages: totalPages, // Fixed
-            totalCatagorys: totalCatagorys // Fixed
+            totalPages,
+            totalCatagorys
         });
     } catch (error) {
         console.log(error);
@@ -84,94 +84,39 @@ const categogtyInfo = async (req, res) => {
     }
 };
 
-
 const addCatogary = async (req, res) => {
     const { name, description } = req.body;
 
-    // Input validation
     if (!name || !description) {
-        return res.status(400).json({ status: false, error: "Name and description are required." });
+        return res.status(400).json({ status: false, message: "Name and description are required." });
     }
 
     try {
-        // Standardize the category name format: First letter capital, rest lowercase
         const formattedName = name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase();
 
-        // Check if the category already exists
         const existingCategory = await category.findOne({ name: formattedName });
         if (existingCategory) {
             return res.status(400).json({
-                message: 'Category already exists!',
-                type: 'error', 
-              });;
+                status: false,
+                message: "Category already exists!"
+            });
         }
-        
-        // Create and save the new category
+
         const newCategory = new category({
-            name: formattedName, // Save the standardized format
+            name: formattedName,
             description: description.trim(),
         });
 
         await newCategory.save();
-        // location.reload();
+        return res.status(201).json({ status: true, message: "Category added successfully!" });
 
-
-        return res.redirect('/admin/catogary');
     } catch (error) {
         console.error("Error adding category:", error);
-        return res.status(500).json({ status: false, error: "Internal server error." });
+        return res.status(500).json({ status: false, message: "Internal server error." });
     }
 };
 
 
-
-
-
-// const addCategoryOffer= async (req,res)=>{
-//     try {
-//        const {categoryId,offer}=req.body;
-//        const products=await Product.find();
-//        if(offer<0 ||offer>100 ){
-//         return res.status(500).send("the offer musbe 0-100")
-//        }
-//        const category= await Category.findById(categoryId);
-
-//        if(!category){
-//         return res.status(500).send("the category not found ");
-//        }
-//        category.categoryOffres=offer
-//        await category.save();
-
-//        products.forEach((product)=>{
-       
-//         let productof= product.regularPrice-(product.regularPrice*product.productOffer)/100 ||0;
-//         let catoff=  product.regularPrice-(product.regularPrice*offer)/100 ||0;
-           
-//         const finalPrice=Math.max(productof,catoff);
-//           product.salePrice=finalPrice;
-         
-//        })
-//        await products.save();
-       
-//        res.redirect('/admin/catogary');
-       
-       
-
-//     //    const products= await Product.find({category:categoryId});
-
-//     //    for(const product of products){
-//     //     const discount= (product.regularPrice*offer)/100
-//     //     // product.salePrice=product.regularPrice-discount;
-//     //     await product.save();
-//     //    }
-
-
-//     } catch (error) {
-//         res.status(500).json({status:false,message:"internal server error"})
-//         console.error(error);
-        
-//     }
-// }
 const addCategoryOffer = async (req, res) => {
     try {
         const { categoryId, offer } = req.body;
@@ -220,37 +165,7 @@ const addCategoryOffer = async (req, res) => {
         console.error(error);
     }
 };
-
-
-// const removeCategoryOffer=async (req,res)=>{
-//     try {
-//         const id=req.query.id;
-//         let categoryId=new mongoose.Types.ObjectId(id)
-//         const Category = await category.findOne({_id:categoryId});
-//         if(!Category){
-//             return res.status(400).json({status:false,message:"category not found"})
-//         }
-
-//         // const percentage=category.addCategoryOffer;
-//         // const products= await Product.find({category:categoryId});
-
-//         // if(products.length>0){
-//         //     for(const product of products){
-//         //         product.salePrice = product.regularPrice //+=Math.floor(product.regularPrice*(percentage/100 ));
-//         //         product.productOffer=0
-//         //         await product.save()
-//         //     }
-//         // }
-//         Category.categoryOffres=0
-//         await Category.save()
-//         res.redirect('/admin/catogary')
-       
-//     } catch (error) {
-//         res.status(500).json({status:false,message:"internal server error"}) 
-//         console.error(error);
-        
-//     }
-// }
+ 
 
 const removeCategoryOffer = async (req, res) => {
     try {
@@ -310,31 +225,39 @@ const editCategory=async (req,res)=>{
         
     }
 }
-
-const updateCategory= async (req,res)=>{
+const updateCategory = async (req, res) => {
     try {
-        const id= req.query.id;
-        // console.log("the id is ",id)
-        const {categoryName,description}=req.body;
-        const  existingcategory= await Category.findOne({name:categoryName});
-        
-        if(existingcategory){
-            return res.status(400).json({error:"Category already exist, Please choose any another name"})
+        const id = req.query.id;
+        const { categoryName, description } = req.body;
+
+        // Format category name (Capitalize first letter, rest lowercase)
+        const formattedName = categoryName.trim().charAt(0).toUpperCase() + categoryName.trim().slice(1).toLowerCase();
+
+        // Check if another category with the same name exists (excluding current ID)
+        const existingCategory = await Category.findOne({ name: formattedName, _id: { $ne: id } });
+
+        if (existingCategory) {
+            return res.status(400).json({ error: "Category already exists. Please choose another name." });
         }
 
-        const updateCategory= await Category.findByIdAndUpdate({_id:id},{name:categoryName,description:description},{new:true}) ;
+        // Update the category
+        const updatedCategory = await Category.findByIdAndUpdate(
+            id,
+            { name: formattedName, description: description.trim() },
+            { new: true }
+        );
 
-        if(updateCategory){
-            res.redirect('/admin/catogary')
-        }else{
-            res.status(400).json({error:"category not found "})
+        if (updatedCategory) {
+            return res.status(200).json({ success: true, message: "Category updated successfully." });
+        } else {
+            return res.status(404).json({ error: "Category not found." });
         }
-
     } catch (error) {
-        res.status(500).json({error:"internal server error "})
-        console.error(error);
+        console.error("Error updating category:", error);
+        return res.status(500).json({ error: "Internal server error." });
     }
-}
+};
+
 
 const getCategoryoffer= async(req,res)=>{
     try {

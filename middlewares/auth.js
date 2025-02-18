@@ -30,33 +30,6 @@ const isAdmin = (req, res, next) => {
     res.redirect("/login");  // Redirect to login if not admin
 };
 
-// const adminAuth = (req, res, next) => {
-//     if(req.session.admin){
-//     User.findOne({ isAdmin: true })
-//         .then(data => {
-//             if (data) {
-//                 next()
-//             } else {
-//                 res.redirect('/admin/login')
-//             }
-//         })
-//         .catch(error => {
-//             console.log("adminAuth middleware is error ", error);
-//             res.status(500).send("internal server error")
-//         })
-//     }else{
-//         res.redirect('/admin/login')
-//     }
-        
-        
-// }
-// const adminAuth = (req, res, next) => {
-//     if (!req.session.user) {
-//         // Redirect users to login if not logged in
-//         return res.redirect('/login');
-//     }
-//     next();
-// };
 const isLoggedIn = (req, res, next) => {
     if (req.session.user) {
         // Redirect logged-in users to the home page

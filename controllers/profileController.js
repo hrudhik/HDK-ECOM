@@ -197,7 +197,9 @@ const resendfpdotp = async (req, res) => {
 
 const loadresetpassword=async (req,res)=>{
     try {
-        res.render('resetpassword')
+    const user=await User.findById(req.session.user)
+
+        res.render('resetpassword',{user})
     } catch (error) {
         res.redirect('/pagenotfound')
     }
@@ -206,6 +208,9 @@ const loadresetpassword=async (req,res)=>{
 const newpassword= async (req,res)=>{
     try {
         const {newPass1 , newPass2}=req.body;
+        
+        const user=await User.findById(req.session.user)
+
         const email= req.session.email;
         if(newPass1 === newPass2){
             const passwordHarsh= await hashpassword(newPass1);
@@ -216,12 +221,22 @@ const newpassword= async (req,res)=>{
             res.redirect('/login')
 
         }else{
-            res.render('resetpassword',{
+            res.render('resetpassword',{user,
                 message:"password do not match"
             })
         }
     } catch (error) {
         res.redirect('/pagenotfound')
+        
+    }
+}
+
+const loadchangepassword= async(req,res)=>{
+    try {
+        const user= await User.findById(req.session.user)
+        res.render('cangepassword',{user});
+    } catch (error) {
+        res.redirect("/pagenotfound")
         
     }
 }
@@ -285,7 +300,7 @@ const addAddress=async (req,res)=>{
             userAddress.address.push({addresType,name,city,landMark,pincode,state,phone,altPhone});
             await userAddress.save(); 
         }
-        res.redirect('/userprofile')
+        res.redirect('/addressmanagement')
         } catch (error) {
         console.log("address adding failed:",error);
         res.redirect('/pagenotfound');
@@ -346,7 +361,7 @@ const postEditAddress=async (req,res)=>{
             altPhone:data.altPhone
 
         }} });
-        res.redirect('/userprofile')
+        res.redirect('/addressmanagement')
 
     } catch (error) {
         console.error(error)
@@ -394,5 +409,6 @@ module.exports={
     addAddress,
     editAddress,
     postEditAddress,
-    deleteAddress
+    deleteAddress,
+    loadchangepassword
 }

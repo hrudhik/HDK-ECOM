@@ -3,6 +3,8 @@ const excelJS = require("exceljs");
 const PDFDocument = require("pdfkit-table");
 const Order = require("../models/orderSchema");
 const pdfTable = require("pdfkit-table");
+const fs = require("fs");
+
 require("pdfkit-table");
 
 const renderSalesReportPage = async (req, res) => {
@@ -224,6 +226,7 @@ const getSalesReport = async (req, res) => {
       },
     ]);
     const totalOffer = await Order.aggregate([
+      { $match: matchCondition },
       { $unwind: "$items" },
       { $match: { "items.status": "Delivered" } },
       {
@@ -271,31 +274,53 @@ const downloadPdf = async (req, res) => {
       };
     }
 
-    const salesData = await Order.find(matchCondition).sort({createdAt:-1})
+    const salesData = await Order.find(matchCondition)
       .populate("userId")
-      .populate("items.productId") // Ensure product details are included
+      .populate("items.productId")
       .lean();
 
     if (!salesData.length) {
       return res.status(404).send("No sales data found for the selected filter.");
     }
 
+    // ✅ Calculate Total Income & Total Discount
+    let totalIncome = 0;
+    let totalDiscount = 0;
+
+    salesData.forEach((order) => {
+      order.items.forEach((item) => {
+        const price = Number(item.price) || 0;
+        const quantity = Number(item.quantity) || 0;
+        const discount = Number(order.discount) || 0;
+
+        totalIncome += (price * quantity) - discount;
+        totalDiscount += discount;
+      });
+    });
+
+    // ✅ Generate PDF
     const pdfDoc = new PDFDocument({ margin: 30, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=sales_report.pdf"
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=sales_report.pdf");
     pdfDoc.pipe(res);
 
-    // Title
+    // ✅ Add Title
     pdfDoc
       .fontSize(18)
       .font("Helvetica-Bold")
-      .text(`Sales Report ${filter.toUpperCase()}`, { align: "center" })
-      .moveDown(2);
+      .text(`Sales Report - ${filter.toUpperCase()}`, { align: "center" })
+      .moveDown(1);
 
-    // Table Headers
+    // ✅ Add Total Income & Total Discount (Top Left)
+    pdfDoc
+      .fontSize(12)
+      .font("Helvetica-Bold")
+      .text(`Total Income: ₹${totalIncome.toLocaleString("en-IN")}`, { align: "left" })
+      .moveDown(0.2)
+      .text(`Total Discount: ₹${totalDiscount.toLocaleString("en-IN")}`, { align: "left" })
+      .moveDown(1);
+
+    // ✅ Table Headers
     const headers = [
       { label: "Order ID", property: "orderId", width: 90, align: "center" },
       { label: "User Name", property: "userName", width: 90, align: "center" },
@@ -306,7 +331,7 @@ const downloadPdf = async (req, res) => {
       { label: "Total", property: "totalAmount", width: 80, align: "center" },
     ];
 
-    // Table Data
+    // ✅ Table Data
     const rows = [];
     salesData.forEach((order) => {
       order.items.forEach((item) => {
@@ -328,7 +353,7 @@ const downloadPdf = async (req, res) => {
       });
     });
 
-    // Add Table
+    // ✅ Add Table
     pdfDoc.table({ headers, rows }, {
       prepareHeader: () => pdfDoc.font("Helvetica-Bold").fontSize(10),
       prepareRow: () => pdfDoc.font("Helvetica").fontSize(9),
@@ -337,14 +362,13 @@ const downloadPdf = async (req, res) => {
       width: 550,
     });
 
-    // Finalize the PDF
+    // ✅ Finalize PDF
     pdfDoc.end();
   } catch (error) {
     console.error("Error generating PDF:", error);
     res.status(500).send("Failed to generate PDF");
   }
 };
-
 
 
 const downloadExcel = async (req, res) => {

@@ -61,6 +61,7 @@ router.post('/editProduct/:id',adminAuth,upload.array("images",4),productControl
 router.post('/deleteImage',adminAuth,productController.deleteoneimage)
 router.get('/productOffer',adminAuth,productController.getproductOffer)
 router.post('/product-offer',adminAuth,productController.addproductoffer)
+router.get('/removeproductOffer',adminAuth,productController.removeOffer)
 
 //serch
 router.get('/admin/users',adminAuth, adminController.userserech);

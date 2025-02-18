@@ -2,6 +2,7 @@ const Product = require("../models/productSchema");
 const Category = require("../models/categorySchema");
 const Brand = require("../models/brandSchema");
 const User = require("../models/userSchema");
+const mongoose=require('mongoose')
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
@@ -24,7 +25,7 @@ const addProduct = async (req, res) => {
     try {
         const products = req.body;
 
-        
+
         const existingProduct = await Product.findOne({
             productName: products.productName,
         });
@@ -110,7 +111,7 @@ const allProduct = async (req, res) => {
         }).countDocuments();
 
         const categories = await Category.find({ isListed: true });
-        console.log(categories,"rdyjfuyf")
+        console.log(categories, "rdyjfuyf")
         const brands = await Brand.find({ isBlocked: true });
 
         const totalPages = Math.ceil(count / limit);
@@ -273,49 +274,63 @@ const deleteoneimage = async (req, res) => {
     }
 };
 
-const getproductOffer= async(req,res)=>{
+const getproductOffer = async (req, res) => {
     try {
-        const products=await Product.find();
-        res.render('addProductoffer',{products})
+        const products = await Product.find();
+        res.render('addProductoffer', { products })
     } catch (error) {
         console.log(error)
         res.redirect('/admin/pagenotfound')
-        
+
     }
 }
 
-const addproductoffer= async(req,res)=>{
+const addproductoffer = async (req, res) => {
     try {
-        const {productId,offerPercentage}=req.body;
+        const { productId, offerPercentage } = req.body;
         // const newProduct=await Product.find({isBlocked:false});
-  
 
-        if(offerPercentage<0|| offerPercentage>100){
+
+        if (offerPercentage < 0 || offerPercentage > 100) {
             res.status(500).send("the offer price mustbeen 0-100")
         }
 
         const product = await Product.findById(productId);
-        const categoryid=product.category;
+        const categoryid = product.category;
         // console.log(category)
-        if(!product){
+        if (!product) {
             res.status(500).send("product not find");
         }
 
-        const categoryoff= await Category.findById(categoryid);
-        const discountPrice= product.regularPrice-(product.regularPrice*offerPercentage)/100 ||0;
-        const categorydiscount= product.regularPrice-(product.regularPrice*categoryoff.categoryOffres)/100 ||0;
+        const categoryoff = await Category.findById(categoryid);
+        const discountPrice = product.regularPrice - (product.regularPrice * offerPercentage) / 100 || 0;
+        const categorydiscount = product.regularPrice - (product.regularPrice * categoryoff.categoryOffres) / 100 || 0;
         // console.log(categorydiscount)
 
-        const finalPrice=Math.max(discountPrice,categorydiscount)
-        product.productOffer=offerPercentage;
-        product.salePrice= Math.round(finalPrice);
+        const finalPrice = Math.max(discountPrice, categorydiscount)
+        product.productOffer = offerPercentage;
+        product.salePrice = Math.round(finalPrice);
         await product.save();
 
-        res.redirect('/admin/products')
-        } catch (error) {
-            console.log(error);
-            res.redirect('/admin/pagenotfound');
+        res.status(200).json({ success: true, message: "Offer applied successfully!" });    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+
+    }
+}
+
+const removeOffer = async (req, res) => {
+    try {
+        const Id = req.query.id;
+        console.log(Id);
         
+        const productId=new mongoose.Types.ObjectId(Id)
+
+        await Product.findByIdAndUpdate({ _id:productId }, { $set: { productOffer: 0 } })
+        res.status(200).json({ success: true, message: "offer removed succes" })
+    } catch (error) {
+        console.log("error remove product offer",error)
+        res.status(500).json({success:false,message:"offer removing fail"})
     }
 }
 
@@ -330,5 +345,6 @@ module.exports = {
     updateProduct,
     deleteoneimage,
     getproductOffer,
-    addproductoffer
+    addproductoffer,
+    removeOffer
 };

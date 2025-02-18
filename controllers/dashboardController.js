@@ -4,12 +4,11 @@ const Product= require('../models/productSchema')
 const Category= require('../models/categorySchema')
 const Order = require('../models/orderSchema');  // Your Order model
 
-// 📊 Sales Report API (Yearly, Monthly)
-// router.get('/sales-report')
 const graph = async (req, res) => {
     try {
-        const { filter } = req.query;
+        const { filter, startDate, endDate } = req.query;
         let dateFrom = new Date();
+        let dateTo = new Date(); // Default is today
 
         if (filter === "monthly") {
             dateFrom.setMonth(dateFrom.getMonth() - 1);
@@ -17,12 +16,18 @@ const graph = async (req, res) => {
             dateFrom.setFullYear(dateFrom.getFullYear() - 1);
         } else if (filter === "weekly") {
             dateFrom.setDate(dateFrom.getDate() - 7);
+        } else if (filter === "today") {
+            dateFrom.setHours(0, 0, 0, 0); // Start of today
+            dateTo.setHours(23, 59, 59, 999); // End of today
+        } else if (filter === "custom" && startDate && endDate) {
+            dateFrom = new Date(startDate);
+            dateTo = new Date(endDate);
         } else {
             return res.status(400).json({ message: "Invalid filter" });
         }
 
         const sales = await Order.aggregate([
-            { $match: { createdAt: { $gte: dateFrom } } },
+            { $match: { createdAt: { $gte: dateFrom, $lte: dateTo } } },
             { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, totalSales: { $sum: "$totalAmount" } } },
             { $sort: { _id: 1 } }
         ]);

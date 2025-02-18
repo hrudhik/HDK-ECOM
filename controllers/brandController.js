@@ -1,5 +1,6 @@
 const Brand=require("../models/brandSchema");
 const product= require("../models/productSchema")
+const mongoose= require("mongoose")
 
 
 
@@ -79,22 +80,28 @@ const getbrandPage = async (req, res) => {
   const addBrand = async (req, res) => {
     try {
       const brand = req.body.name;
-      const findBrand = await Brand.findOne({ brandName: brand });
+      const formattedName = brand.trim().toUpperCase()
+     
+      const findBrand = await Brand.findOne({ brandName: formattedName });
+
       
+      if (findBrand) {
+        return res.status(400).json({ message: "Brand already exists." });
+      }
+
       if (!findBrand) {
-        const image = req.file.filename; // Uploaded image filename
         const newBrand = new Brand({
-          brandName: brand,
-          brandImage: image
+          brandName: formattedName,
+          
         });
         await newBrand.save();
-        res.redirect('/admin/brands');
+        res.status(200).json({success:true,message:"Brand added successfully!"})
       } else {
-        res.send("Brand already exists");
+        res.status(400).json({success:false, message:"Something went wrong Please try again later. " });
       }
     } catch (error) {
       console.error(error);
-      res.redirect('/pagenotfound');
+      res.status(500).json({success:false, message: "Internal server error." });
     }
   };
 
@@ -124,11 +131,15 @@ const getbrandPage = async (req, res) => {
 
 const deleteBrand= async(req,res)=>{
     try {
-        const {id}=req.query
+        const id=req.query
+        // console.log("brandId",id);
+        
         if(!id){
             return res.status(400).redirect('/pagenotfound');
         }
-        await Brand.deleteOne({_id:id});
+        let brandId=new mongoose.Types.ObjectId(id)
+        // console.log("dghjrghgjkaehrgioahroighoairghoiuh",brandId)
+        await Brand.deleteOne({_id:brandId});
         res.redirect('/admin/brands');
     } catch (error) {
         console.error(error);

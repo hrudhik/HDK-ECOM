@@ -46,118 +46,114 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  
-   document.getElementById('addressForm').addEventListener('submit', function(event) {
-       if (!validateForm()) {
-           event.preventDefault();
-       }
-   });
+    document.getElementById('addressForm').addEventListener('submit', function(event) {
+        if (!validateForm()) {
+            event.preventDefault(); // Prevent form submission if validation fails
+        }
+    });
 
+    function validateForm() {
+        let isValid = true;
+        const requiredFields = ["addressType", "name", "city", "landMark", "state", "pincode", "phone", "altPhone"];
 
-   function validateForm() {
-       let isValid = true;
-       const requiredFields = ["addressType", "name", "city", "landMark", "state", "pincode", "phone", "altPhone"];
-       requiredFields.forEach(function(field) {
-           const input = document.getElementById(field);
-           const inputValue = input.value.trim();
-           const errorElement = document.getElementById(field + '-error');
+        // Regular expressions for validation
+        const namePattern = /^[A-Za-z]+$/; // Only letters, no spaces
+        const pincodePattern = /^\d{6}$/; // Only 6-digit numbers
+        const phonePattern = /^[6-9]\d{9}$/; // Only 10-digit valid Indian phone numbers (starting with 6-9)
 
+        requiredFields.forEach(function(field) {
+            const input = document.getElementById(field);
+            let inputValue = input.value.trim(); // Trim spaces from input
+            const errorElement = document.getElementById(field + '-error');
 
-           if (inputValue === "") {
-               if (!errorElement) {
-                   const errorMessage = "This field is required.";
-                   const errorDiv = document.createElement('div');
-                   errorDiv.className = "text-danger";
-                   errorDiv.textContent = errorMessage;
-                   errorDiv.id = field + '-error';
-                   input.parentNode.appendChild(errorDiv);
-               }
-               isValid = false;
-           } else {
-               if (errorElement) {
-                   errorElement.remove();
-               }
-           }
-       });
+            if (inputValue === "") {
+                showError(field, "This field is required.");
+                isValid = false;
+            } else {
+                clearError(field);
+            }
+        });
 
+        const name = document.getElementById('name').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const landMark = document.getElementById('landMark').value.trim();
+        const state = document.getElementById('state').value.trim();
+        const pincode = document.getElementById('pincode').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const altPhone = document.getElementById('altPhone').value.trim();
 
-       const addressType = document.getElementById('addressType').value;
-       const name = document.getElementById('name').value;
-       const city = document.getElementById('city').value;
-       const landMark = document.getElementById('landMark').value;
-       const state = document.getElementById('state').value;
-       const pincode = document.getElementById('pincode').value;
-       const phone = document.getElementById('phone').value;
-       const altPhone = document.getElementById('altPhone').value;
-       const namePattern = /^[A-Za-z\s]+$/;
-       const pincodePattern = /^\d{6}$/;
-       const phonePattern = /^\d{10}$/;
-       if (!namePattern.test(name)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Name should contain alphabets only.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!namePattern.test(city)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'City should contain alphabets only.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!namePattern.test(landMark)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Landmark should contain alphabets only.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!namePattern.test(state)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'State should contain alphabets only.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!pincodePattern.test(pincode)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Pincode should be a 6-digit number.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!phonePattern.test(phone)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Phone number should be a 10-digit number.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (!phonePattern.test(altPhone)) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Alternate phone number should be a 10-digit number.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       if (phone === altPhone) {
-           Swal.fire({
-               title: 'Error',
-               text: 'Phone number and alternate phone number should be different.',
-               icon: 'error'
-           });
-           isValid = false;
-       }
-       return isValid;
-   }
+        // Name, City, Landmark & State validation (Only letters, no spaces)
+        if (!namePattern.test(name)) {
+            showSwalError("Name should contain only letters (no spaces or numbers).");
+            isValid = false;
+        }
+        if (!namePattern.test(city)) {
+            showSwalError("City should contain only letters (no spaces or numbers).");
+            isValid = false;
+        }
+        if (!namePattern.test(landMark)) {
+            showSwalError("Landmark should contain only letters (no spaces or numbers).");
+            isValid = false;
+        }
+        if (!namePattern.test(state)) {
+            showSwalError("State should contain only letters (no spaces or numbers).");
+            isValid = false;
+        }
+
+        // Pincode validation (Only 6-digit numbers)
+        if (!pincodePattern.test(pincode)) {
+            showSwalError("Pincode must be exactly 6 digits (no spaces or letters).");
+            isValid = false;
+        }
+
+        // Phone number validation (Only 10-digit valid numbers starting with 6-9)
+        if (!phonePattern.test(phone)) {
+            showSwalError("Phone number must be a valid 10-digit number starting with 6-9.");
+            isValid = false;
+        }
+        if (!phonePattern.test(altPhone)) {
+            showSwalError("Alternate phone number must be a valid 10-digit number starting with 6-9.");
+            isValid = false;
+        }
+
+        // Ensure phone and alternate phone are not the same
+        if (phone === altPhone) {
+            showSwalError("Phone number and alternate phone number must be different.");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Function to show inline error message
+    function showError(field, message) {
+        let errorElement = document.getElementById(field + '-error');
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.className = "text-danger";
+            errorElement.id = field + '-error';
+            document.getElementById(field).parentNode.appendChild(errorElement);
+        }
+        errorElement.textContent = message;
+    }
+
+    // Function to clear inline error message
+    function clearError(field) {
+        const errorElement = document.getElementById(field + '-error');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    }
+
+    // Function to show SweetAlert errors
+    function showSwalError(message) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: message,
+        });
+    }
 </script>
+
 <%- include("../partials/user/footer") %>
 
