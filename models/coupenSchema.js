@@ -64,10 +64,10 @@ const couponSchema = new Schema({
         type: Date,
         default: Date.now,
     },
-    couponImage:{
-        type:String,
-        required:true,
-    },
+    // couponImage:{
+    //     type:String,
+    //     required:true,
+    // },
     minPurchaseAmount: { 
         type: Number,
         required: true,

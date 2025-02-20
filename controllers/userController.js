@@ -302,6 +302,8 @@ const loadshopePage = async (req, res) => {
         // 🛠️ Get Query Parameters for Filters & Sorting
         const { query, category, priceRange, sort } = req.query;
 
+
+
         // ✅ Filtering Conditions
         const filters = {
             isBlocked: false,
@@ -358,6 +360,7 @@ const loadshopePage = async (req, res) => {
             selectedCategory: category || "",
             selectedPriceRange: priceRange || "",
             selectedSort: sort || "",
+            
         });
     } catch (error) {
         console.error("Error in loadshopePage:", error);

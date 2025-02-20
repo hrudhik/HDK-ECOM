@@ -181,7 +181,6 @@
                                     <th scope="col" colspan="2">Product</th>
                                     <th scope="col">Price</th>
                                     <th scope="col">Stock Status</th>
-                                    <th scope="col">Action</th>
                                     <th scope="col">Remove</th>
                                 </tr>
                             </thead>
@@ -199,12 +198,10 @@
                                         <%if(product.productId.quantity>0){%>
                                         <span class="color3 font-weight-bold">In Stock</span>
                                         <%}else{%>
-                                            <span class="color3 font-weight-bold">Out of Stock</span>
+                                            <span class="color3 font-weight-bold text-danger">Out of Stock</span>
                                             <%}%>
                                     </td>
-                                    <td class="text-right" data-title="Cart">
-                                        <button class="btn btn-sm"><i class="fi-rs-shopping-bag mr-5"></i>Add to cart</button>
-                                    </td>
+                                    
                                     <td>
                                         <button class="btn-remove"  onclick="removeFromWishlist('<%=product.productId._id%>')">Remove</button>
                                     </td>

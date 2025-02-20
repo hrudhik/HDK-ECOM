@@ -72,7 +72,7 @@ router.post("/orders/:orderId/:productId/status", adminAuth, adminController.upd
 
 //coupen 
 router.get('/listcoupen',adminAuth,adminController.listCoupons)
-router.post('/coupons/create',adminAuth,upload.single("couponImage"),adminController.createCoupons)
+router.post('/coupons/create',adminAuth,adminController.createCoupons)
 router.post('/deleteCoupons/:id',adminAuth,adminController.deletCoupens)
 
 //salesreport

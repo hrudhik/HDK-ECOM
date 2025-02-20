@@ -1,236 +1,308 @@
 <%- include("../partials/user/header.ejs") %>
- 
-<style>
-     .search-bar {
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .search-bar input {
-      padding: 10px;
-      font-size: 16px;
-      width: 300px;
-      margin-right: 10px;
-    }
-    .search-bar button {
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-</style>
 
-<main class="main">
-    <div class="page-header breadcrumb-wrap">
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="/" rel="nofollow">Home</a>
-                <span><a href="/shope">Shop</a></span> 
-            </div>
-        </div>
-    </div>
+    <style>
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    <section class="mt-50 mb-50">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <!-- Search Bar -->
-                    <div class="search-bar">
-                        <form method="GET" action="/shope">
-                            <input type="text" name="query" placeholder="Search products..." value="<%= searchQuery || '' %>" />
-                            <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
-                            <input type="hidden" name="priceRange" value="<%= selectedPriceRange || '' %>">
-                            <input type="hidden" name="sort" value="<%= selectedSort || '' %>">
-                            <button type="submit">Search</button>
-                        </form>
-                    </div>
+        .search-bar input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            margin-right: 10px;
+        }
 
-                    <div class="shop-product-fillter">
-                        <div class="totall-product">
-                            <p> We found <strong class="text-brand"><%= totalProducts %></strong> items for you!</p>
-                        </div>
+        .search-bar button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 
-                        <!-- Sort By Options -->
-                        <div class="sort-by-product-area">
-                            <div class="sort-by-cover mr-10">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Sort :</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span>Options <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a href="/shope?sort=lowToHigh&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Price low to high</a></li>
-                                        <li><a href="/shope?sort=highToLow&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Price high to low</a></li>
-                                        <li><a href="/shope?sort=aToZ&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">A to Z</a></li>
-                                        <li><a href="/shope?sort=zToA&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>">Z to A</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <!-- Category Filter -->
-                            <div class="sort-by-cover mr-10">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Filter By :</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span>Category <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a href="/shope?query=<%= searchQuery %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">All</a></li>
-                                        <% for(let i = 0; i < category.length; i++) { %>
-                                            <li>
-                                                <a href="/shope?category=<%= category[i]._id %>&query=<%= searchQuery %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>"><%= category[i].name %></a>
-                                            </li>
-                                        <% } %>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <!-- Price Range Filter -->
-                            <div class="sort-by-cover">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps-sort"></i>Filter By :</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span>Price <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a href="/shope?query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">All</a></li>
-                                        <li><a href="/shope?priceRange=500-1000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹500 - ₹1000</a></li>
-                                        <li><a href="/shope?priceRange=1000-5000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹1000 - ₹5000</a></li>
-                                        <li><a href="/shope?priceRange=5000-10000&query=<%= searchQuery %>&category=<%= selectedCategory %>&sort=<%= selectedSort %>">₹5000 - ₹10000</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product List -->
-                    <div class="row product-grid-4">
-                        <% for (let i = 0; i < products.length; i++) { %>
-                            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                <div class="product-cart-wrap mb-30">
-                                    <div class="product-img-action-wrap">
-                                        <div class="product-img product-img-zoom">
-                                            <a href="/productDetails?id=<%= products[i]._id %>">
-                                                <img class="default-img" src="/uploads/re-image/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
-                                            </a>
-                                        </div>
-                                        <div class="product-action-1">
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" onclick="addToWishlist('<%= products[i]._id %>')">
-                                                <i class="fi-rs-heart"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="product-content-wrap">
-                                        <h2><a href="/productDetails?id=<%= products[i]._id %>"><%= products[i].productName %></a></h2>
-                                        <div class="product-price">
-                                            <span>₹<%= products[i].salePrice %></span>
-                                            <span class="old-price">₹<%= products[i].regularPrice %></span>
-                                        </div>
-                                        <div class="product-action-1 show">
-                                            <a aria-label="Add To Cart" class="action-btn hover-up" onclick=" addToCart('<%=products[i]._id%>')">
-                                                <i class="fi-rs-shopping-bag-add"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <% } %>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="pagination">
-                        <% if (currentPage > 1) { %>
-                            <a class="btn" href="/shope?page=<%= currentPage - 1 %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">Prev</a>
-                        <% } %>
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <a class="btn <%= currentPage === i ? 'active' : '' %>" href="/shope?page=<%= i %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>"><%= i %></a>
-                        <% } %>
-                    </div>
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/" rel="nofollow">Home</a>
+                    <span><a href="/shope">Shop</a></span>
                 </div>
             </div>
         </div>
-    </section>
-</main>
 
-<%- include("../partials/user/footer.ejs") %>
+        <section class="mt-50 mb-50">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <!-- Search Bar -->
+                        <div class="search-bar">
+                            <form method="GET" action="/shope">
+                                <input type="text" name="query" placeholder="Search products..."
+                                    value="<%= searchQuery || '' %>" />
+                                <input type="hidden" name="category" value="<%= selectedCategory || '' %>" />
+                                <input type="hidden" name="priceRange" value="<%= selectedPriceRange || '' %>" />
+                                <input type="hidden" name="sort" value="<%= selectedSort || '' %>" />
+                                <button type="submit">Search</button>
+                            </form>
+                        </div>
 
+                        <div class="shop-product-fillter">
+                            <div class="totall-product">
+                                <p>
+                                    We found
+                                    <strong class="text-brand">
+                                        <%= totalProducts %>
+                                    </strong> items
+                                    for you!
+                                </p>
+                            </div>
 
-<script>
+                            <!-- Sort By Options -->
+                            <div class="sort-by-product-area">
+                                <div class="sort-by-cover mr-10">
+                                    <div class="sort-by-product-wrap">
+                                        <div class="sort-by">
+                                            <span><i class="fi-rs-apps"></i>Sort :</span>
+                                        </div>
+                                        <div class="sort-by-dropdown-wrap">
+                                            <span>Options <i class="fi-rs-angle-small-down"></i></span>
+                                        </div>
+                                    </div>
+                                    <div class="sort-by-dropdown">
+                                        <ul>
+                                            <li>
+                                                <a href="/shope?sort=lowToHigh&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&priceRange=<%= selectedPriceRange || '' %>"
+                                                    class="<%= selectedSort === 'lowToHigh' ? 'active' : '' %>">
+                                                    Price Low to High
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?sort=highToLow&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&priceRange=<%= selectedPriceRange || '' %>"
+                                                    class="<%= selectedSort === 'highToLow' ? 'active' : '' %>">
+                                                    Price High to Low
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?sort=aToZ&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&priceRange=<%= selectedPriceRange || '' %>"
+                                                    class="<%= selectedSort === 'aToZ' ? 'active' : '' %>">
+                                                    A to Z
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?sort=zToA&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&priceRange=<%= selectedPriceRange || '' %>"
+                                                    class="<%= selectedSort === 'zToA' ? 'active' : '' %>">
+                                                    Z to A
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
 
-function addToCart(productId) {
-    $.ajax({
-        url: "/addTocart",
-        method: "POST",
-        data: {
-            productId: productId,
-            quantity: 1
-        },
-        success: (response) => {
-            if (response.success) {
-                if (response.message === 'Product added to cart successfully!') {
-                    Swal.fire({
-                        title: "Added To Cart",
-                        text: "The product has been added to your cart.",
-                        icon: "success",
-                        timer: 2000
+                                <!-- Category Filter -->
+                                <div class="sort-by-cover mr-10">
+                                    <div class="sort-by-product-wrap">
+                                        <div class="sort-by">
+                                            <span><i class="fi-rs-apps"></i>Filter By :</span>
+                                        </div>
+                                        <div class="sort-by-dropdown-wrap">
+                                            <span>Category <i class="fi-rs-angle-small-down"></i></span>
+                                        </div>
+                                    </div>
+                                    <div class="sort-by-dropdown">
+                                        <ul>
+                                            <li>
+                                                <a href="/shope?query=<%= searchQuery || '' %>&priceRange=<%= selectedPriceRange || '' %>&sort=<%= selectedSort || '' %>"
+                                                    class="<%= !selectedCategory ? 'active' : '' %>">
+                                                    All
+                                                </a>
+                                            </li>
+                                            <% for(let i=0; i < category.length; i++) { %>
+                                                <li>
+                                                    <a href="/shope?category=<%= category[i]._id %>&query=<%= searchQuery || '' %>&priceRange=<%= selectedPriceRange || '' %>&sort=<%= selectedSort || '' %>"
+                                                        class="<%= selectedCategory === category[i]._id.toString() ? 'active' : '' %>">
+                                                        <%= category[i].name %>
+                                                    </a>
+                                                </li>
+                                                <% } %>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Price Range Filter -->
+                                <div class="sort-by-cover">
+                                    <div class="sort-by-product-wrap">
+                                        <div class="sort-by">
+                                            <span><i class="fi-rs-apps-sort"></i>Filter By :</span>
+                                        </div>
+                                        <div class="sort-by-dropdown-wrap">
+                                            <span>Price <i class="fi-rs-angle-small-down"></i></span>
+                                        </div>
+                                    </div>
+                                    <div class="sort-by-dropdown">
+                                        <ul>
+                                            <li>
+                                                <a href="/shope?query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&sort=<%= selectedSort || '' %>"
+                                                    class="<%= !selectedPriceRange ? 'active' : '' %>">
+                                                    All
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?priceRange=500-1000&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&sort=<%= selectedSort || '' %>"
+                                                    class="<%= selectedPriceRange === '500-1000' ? 'active' : '' %>">
+                                                    ₹500 - ₹1000
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?priceRange=1000-5000&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&sort=<%= selectedSort || '' %>"
+                                                    class="<%= selectedPriceRange === '1000-5000' ? 'active' : '' %>">
+                                                    ₹1000 - ₹5000
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="/shope?priceRange=5000-10000&query=<%= searchQuery || '' %>&category=<%= selectedCategory || '' %>&sort=<%= selectedSort || '' %>"
+                                                    class="<%= selectedPriceRange === '5000-10000' ? 'active' : '' %>">
+                                                    ₹5000 - ₹10000
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
+                                </div>
+                            
+                                   
+                                
+                            </div>
+                            
+                        </div>
+                        <a href="/shope" class="button">Cleare filter</a>
+
+                        <!-- Product List -->
+                        <div class="row product-grid-4">
+                            <% for (let i=0; i < products.length; i++) { %>
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap mb-30">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="/productDetails?id=<%= products[i]._id %>">
+                                                    <img class="default-img"
+                                                        src="/uploads/re-image/<%= products[i].productImage[0] %>"
+                                                        alt="<%= products[i].productName %>" />
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                                <a aria-label="Add To Wishlist" class="action-btn hover-up"
+                                                    onclick="addToWishlist('<%= products[i]._id %>')">
+                                                    <i class="fi-rs-heart"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <h2>
+                                                <a href="/productDetails?id=<%= products[i]._id %>">
+                                                    <%= products[i].productName %>
+                                                </a>
+                                            </h2>
+                                            <div class="product-price">
+                                                <span>₹<%= products[i].salePrice %></span>
+                                                <span class="old-price">₹<%= products[i].regularPrice %></span>
+                                            </div>
+                                            <div class="product-action-1 show">
+                                                <a aria-label="Add To Cart" class="action-btn hover-up"
+                                                    onclick=" addToCart('<%=products[i]._id%>')">
+                                                    <i class="fi-rs-shopping-bag-add"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% } %>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination">
+                            <% if (currentPage> 1) { %>
+                                <a class="btn"
+                                    href="/shope?page=<%= currentPage - 1 %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">Prev</a>
+                                <% } %>
+                                    <% for (let i=1; i <=totalPages; i++) { %>
+                                        <a class="btn <%= currentPage === i ? 'active' : '' %>"
+                                            href="/shope?page=<%= i %>&query=<%= searchQuery %>&category=<%= selectedCategory %>&priceRange=<%= selectedPriceRange %>&sort=<%= selectedSort %>">
+                                            <%= i %>
+                                        </a>
+                                        <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include("../partials/user/footer.ejs") %>
+
+        <script>
+            function addToCart(productId) {
+                $.ajax({
+                    url: "/addTocart",
+                    method: "POST",
+                    data: {
+                        productId: productId,
+                        quantity: 1,
+                    },
+                    success: (response) => {
+                        if (response.success) {
+                            if (response.message === "Product added to cart successfully!") {
+                                Swal.fire({
+                                    title: "Added To Cart",
+                                    text: "The product has been added to your cart.",
+                                    icon: "success",
+                                    timer: 2000,
+                                });
+                            } else if (response.message === "Product already exists in cart") {
+                                Swal.fire({
+                                    title: "Product Already in Cart",
+                                    text: "The product is already in your cart.",
+                                    icon: "info",
+                                    timer: 2000,
+                                });
+                            }
+                        }
+                    },
+                    error: (error) => {
+                        Swal.fire({
+                            title: "Error",
+                            text: "Failed to add the product to your cart. Please try again.",
+                            icon: "error",
+                            timer: 2000,
+                        });
+                    },
+                });
+            }
+
+            async function addToWishlist(productId) {
+                try {
+                    const response = await fetch("/addTowishlist", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ productId }),
                     });
-                } else if (response.message === 'Product already exists in cart') {
+
+                    const data = await response.json();
                     Swal.fire({
-                        title: "Product Already in Cart",
-                        text: "The product is already in your cart.",
-                        icon: "info",
-                        timer: 2000
+                        toast: true,
+                        position: "top-end",
+                        icon: data.success ? "success" : "error",
+                        title:
+                            data.message ||
+                            (data.success ? "Added to wishlist" : "Failed to add to wishlist"),
+                        showConfirmButton: false,
+                        timer: 3000,
                     });
+                } catch (error) {
+                    console.error("Error adding to wishlist:", error);
                 }
             }
-        },
-        error: (error) => {
-            Swal.fire({
-                title: "Error",
-                text: "Failed to add the product to your cart. Please try again.",
-                icon: "error",
-                timer: 2000
-            });
-        }
-    });
-}
-
-      
-async function addToWishlist(productId) {
-    try {
-        const response = await fetch('/addTowishlist', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ productId }),
-        });
-
-        const data = await response.json();
-        Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: data.success ? 'success' : 'error',
-                title: data.message || (data.success ? 'Added to wishlist' : 'Failed to add to wishlist'),
-                showConfirmButton: false,
-                timer: 3000,
-            });
-    } catch (error) {
-        console.error("Error adding to wishlist:", error);
-    }
-}
-
-
-</script>
+        </script>

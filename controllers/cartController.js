@@ -801,7 +801,7 @@ const cancelOrder = async (req, res) => {
             }
         }
         console.log("orderamount:", returnPrice || product.price)
-        res.redirect("/userProfile"); // Or use res.status(200).json() based on frontend handling
+        res.redirect('/orderdetails'); // Or use res.status(200).json() based on frontend handling
     } catch (error) {
         console.error("Error canceling product:", error);
         res
