@@ -240,6 +240,38 @@ const loadchangepassword= async(req,res)=>{
         
     }
 }
+// const changepassword = async (req, res) => {
+//     try {
+//         const userId = req.session.user;
+//         if (!userId) {
+//             return res.status(400).json({ success: false, message: "User session not found" });
+//         }
+
+//         const { currentPassword, newPassword } = req.body;
+
+        
+//         const user = await User.findById(userId);
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: "User not found" });
+//         }
+       
+//         const isMatch = await bcrypt.compare(currentPassword, user.password);
+//         if (!isMatch) {
+//             return res.status(400).json({ success: false, message: "Current password is incorrect" });
+//         }
+
+//         const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+//         user.password = hashedPassword;
+//         await user.save();
+
+//         res.status(200).json({ success: true, message: "Password updated successfully" });
+//     } catch (error) {
+//         console.error("Error changing password:", error);
+//         res.status(500).json({ success: false, message: "An error occurred" });
+//     }
+// };
+
 const changepassword = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -249,28 +281,39 @@ const changepassword = async (req, res) => {
 
         const { currentPassword, newPassword } = req.body;
 
-        
+        // Find user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-       
+
+        // Compare passwords
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Current password is incorrect" });
         }
 
+        // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-
         user.password = hashedPassword;
         await user.save();
 
-        res.status(200).json({ success: true, message: "Password updated successfully" });
+        // ✅ Destroy session after password change
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Session destroy error:", err);
+                return res.status(500).json({ success: false, message: "Error logging out after password change" });
+            }
+
+            res.status(200).json({ success: true, message: "Password updated successfully" });
+        });
+
     } catch (error) {
         console.error("Error changing password:", error);
         res.status(500).json({ success: false, message: "An error occurred" });
     }
 };
+
 
 const getassAddress= async (req,res)=>{
     try {
@@ -388,7 +431,7 @@ const deleteAddress= async(req,res)=>{
             }
         }})
 
-        res.redirect('/userprofile')
+        res.redirect('/addressmanagement')
     } catch (error) {
         console.error('address deleteing error ',error);
         res.redirect('/pagenotfound');

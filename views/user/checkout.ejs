@@ -505,11 +505,117 @@
         }
 
 
+function validateAddressForm() {
+    let isValid = true;
+    const requiredFields = ["addType", "addName", "addCity", "addLandmark", "addState", "addPincode", "addPhone", "addAltPhone"];
+
+    // Regular expressions for validation
+    const namePattern = /^[A-Za-z\s]+$/; // Only letters and spaces
+    const pincodePattern = /^\d{6}$/; // Exactly 6-digit numbers
+    const phonePattern = /^[6-9]\d{9}$/; // Valid Indian phone numbers (starting with 6-9)
+
+    requiredFields.forEach(function(field) {
+        const input = document.getElementById(field);
+        let inputValue = input.value.trim();
+        const errorElement = document.getElementById(field + '-error');
+
+        if (inputValue === "") {
+            showError(field, "This field is required.");
+            isValid = false;
+        } else {
+            clearError(field);
+        }
+    });
+
+    const name = document.getElementById('addName').value.trim();
+    const city = document.getElementById('addCity').value.trim();
+    const landMark = document.getElementById('addLandmark').value.trim();
+    const state = document.getElementById('addState').value.trim();
+    const pincode = document.getElementById('addPincode').value.trim();
+    const phone = document.getElementById('addPhone').value.trim();
+    const altPhone = document.getElementById('addAltPhone').value.trim();
+
+    // Name, City, Landmark & State validation (Only letters and spaces)
+    if (!namePattern.test(name)) {
+        showSwalError("Name should contain only letters.");
+        isValid = false;
+    }
+    if (!namePattern.test(city)) {
+        showSwalError("City should contain only letters.");
+        isValid = false;
+    }
+    if (landMark && !namePattern.test(landMark)) {
+        showSwalError("Landmark should contain only letters.");
+        isValid = false;
+    }
+    if (!namePattern.test(state)) {
+        showSwalError("State should contain only letters.");
+        isValid = false;
+    }
+
+    // Pincode validation (Exactly 6-digit numbers)
+    if (!pincodePattern.test(pincode)) {
+        showSwalError("Pincode must be exactly 6 digits.");
+        isValid = false;
+    }
+
+    // Phone number validation (10-digit valid numbers starting with 6-9)
+    if (!phonePattern.test(phone)) {
+        showSwalError("Phone number must be a valid 10-digit number starting with 6-9.");
+        isValid = false;
+    }
+    if (altPhone && !phonePattern.test(altPhone)) {
+        showSwalError("Alternate phone number must be a valid 10-digit number starting with 6-9.");
+        isValid = false;
+    }
+
+    // Ensure phone and alternate phone are not the same
+    if (phone === altPhone) {
+        showSwalError("Phone number and alternate phone number must be different.");
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+// Function to show inline error message
+function showError(field, message) {
+    let errorElement = document.getElementById(field + '-error');
+    if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = "text-danger";
+        errorElement.id = field + '-error';
+        document.getElementById(field).parentNode.appendChild(errorElement);
+    }
+    errorElement.textContent = message;
+}
+
+// Function to clear inline error message
+function clearError(field) {
+    const errorElement = document.getElementById(field + '-error');
+    if (errorElement) {
+        errorElement.remove();
+    }
+}
+
+// Function to show SweetAlert errors
+function showSwalError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: message,
+    });
+}
+
+
         document.getElementById("addAddressForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const addressData = Object.fromEntries(formData.entries());
 
+    if (!validateAddressForm()) {
+            return; // Stop submission if validation fails
+        }
     try {
         const response = await fetch("/checkout/add-address", {
             method: "POST",
@@ -799,4 +905,7 @@ placeOrderButton.addEventListener("click", async (event) => {
       couponCodeInput.value = "";
     });
   });
+
+
+  
 </script>

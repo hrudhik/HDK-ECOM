@@ -737,7 +737,7 @@ const cancelOrder = async (req, res) => {
         const order = await Order.findOne({ _id: orderId, userId });
 
         if (!order) {
-            return res.status(404).json({ error: "Order not found." });
+            return res.status(404).json({success:false,message: "Order not found." });
         }
 
 
@@ -748,7 +748,7 @@ const cancelOrder = async (req, res) => {
         console.log("order cancelled product",product)
 
         if (!product) {
-            return res.status(404).json({ error: "Product not found in this order." });
+            return res.status(404).json({ success:false,message: "Product not found in this order." });
         }
 
         let returnPrice
@@ -769,11 +769,11 @@ const cancelOrder = async (req, res) => {
         // console.log("returnPrice",returnPrice
         if (product.status === "Shipped") {
             return res.status(400).json({
-                error: "Product has already been shipped and cannot be canceled.",
+                success:false,message: "Product has already been shipped and cannot be canceled.",
             });
         }
         if (product.status === "Cancelled") {
-            return res.status(400).json({ error: "Product is already canceled." });
+            return res.status(400).json({ success:false,message: "Product is already canceled." });
         }
 
         // Update the product status to "Cancelled"
@@ -801,7 +801,7 @@ const cancelOrder = async (req, res) => {
             }
         }
         console.log("orderamount:", returnPrice || product.price)
-        res.redirect('/orderdetails'); // Or use res.status(200).json() based on frontend handling
+        res.status(200).json({success:true,message:"order cancelled success"})// Or use res.status(200).json() based on frontend handling
     } catch (error) {
         console.error("Error canceling product:", error);
         res
@@ -880,6 +880,7 @@ const checkoutaddAddress = async (req, res) => {
         const userData = await User.findOne({ _id: userId });
 
         const { addresType, name, city, state, pincode, landMark, phone, altPhone } = req.body;
+        // console.log(req.body,"safwgregeghrth")
 
         let userAddress = await Address.findOne({ userId: userData._id });
 
@@ -914,13 +915,15 @@ const checkoutaddAddress = async (req, res) => {
 const invoice = async (req, res) => {
     try {
         const { orderId } = req.query
+        const userId= req.session.user
+        const user= await User.findById(userId)
         // console.log(orderId)
         const Id = new mongoose.Types.ObjectId(orderId)
         const order = await Order.findById(Id).populate('userId').populate('items.productId')
 
         // console.log(order);
 
-        res.render('invoice', { order })
+        res.render('invoice', { order,user })
     } catch (error) {
         console.log("error in getting invoice", error);
         res.redirect('/pagenotfound');
