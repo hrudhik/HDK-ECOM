@@ -274,8 +274,10 @@ const changepassword = async (req, res) => {
 
 const getassAddress= async (req,res)=>{
     try {
-        const user= req.session.user;
-        res.render('addaddress');
+
+        const userId= req.session.user;
+        const user= await User.findById(userId)
+        res.render('addaddress',{user});
 
         
     } catch (error) {
