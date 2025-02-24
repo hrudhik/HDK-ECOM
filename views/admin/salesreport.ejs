@@ -1,264 +1,321 @@
 <%- include("../partials/admin/header.ejs") %>
 
-<style>
-  /* General Styles */
-  body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f9fafb;
-    color: #333;
-    margin: 0;
-    padding: 0;
-  }
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9fafb;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
 
-  h1 {
-    text-align: center;
-    margin: 20px 0;
-    font-size: 2.5rem;
-    color: #34495e;
-  }
-
-  .filters {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px auto;
-    flex-wrap: wrap;
-  }
-
-  .filters form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .filters select {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    background-color: #fff;
-    cursor: pointer;
-  }
-
-  .filters button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    border: none;
-    background-color: #3498db;
-    color: #fff;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .filters button:hover {
-    background-color: #1d78c2;
-  }
-
-  p {
-    text-align: center;
-    font-size: 1.2rem;
-    margin: 20px 0;
-    color: #2c3e50;
-  }
-
-  table {
-    width: 90%;
-    margin: 20px auto;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    border-radius: 8px;
-  }
-
-  table thead {
-    background-color: #3498db;
-    color: #fff;
-  }
-
-  table thead th {
-    padding: 15px;
-    font-size: 1rem;
-    text-align: left;
-  }
-
-  table tbody tr {
-    border-bottom: 1px solid #ddd;
-  }
-
-  table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  table tbody td {
-    padding: 12px;
-    font-size: 0.9rem;
-    color: #34495e;
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 20px auto;
-  }
-
-  .pagination a, .pagination span {
-    padding: 10px 15px;
-    font-size: 1rem;
-    color: #3498db;
-    border: 1px solid #3498db;
-    border-radius: 5px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
-
-  .pagination a:hover {
-    background-color: #3498db;
-    color: #fff;
-  }
-
-  .pagination .active {
-    background-color: #3498db;
-    color: #fff;
-    border-color: #3498db;
-  }
-
-  .downloads {
-    text-align: center;
-    margin: 20px 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .downloads a {
-    padding: 10px 20px;
-    font-size: 1rem;
-    text-decoration: none;
-    border: none;
-    border-radius: 5px;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .downloads a[href*='pdf'] {
-    background-color: #e74c3c;
-  }
-
-  .downloads a[href*='pdf']:hover {
-    background-color: #c0392b;
-  }
-
-  .downloads a[href*='excel'] {
-    background-color: #27ae60;
-  }
-
-  .downloads a[href*='excel']:hover {
-    background-color: #1e8449;
-  }
-
-  @media (max-width: 768px) {
     h1 {
-      font-size: 2rem;
+      text-align: center;
+      margin: 20px 0;
+      font-size: 2.5rem;
+      color: #34495e;
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px auto;
+      flex-wrap: wrap;
+    }
+
+    .filters form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filters select {
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      background-color: #fff;
+      cursor: pointer;
+    }
+
+    .filters button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      background-color: #3498db;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .filters button:hover {
+      background-color: #1d78c2;
+    }
+
+    p {
+      text-align: center;
+      font-size: 1.2rem;
+      margin: 20px 0;
+      color: #2c3e50;
     }
 
     table {
-      font-size: 0.85rem;
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      border-radius: 8px;
     }
 
-    .filters select, .filters button {
+    table thead {
+      background-color: #3498db;
+      color: #fff;
+    }
+
+    table thead th {
+      padding: 15px;
+      font-size: 1rem;
+      text-align: left;
+    }
+
+    table tbody tr {
+      border-bottom: 1px solid #ddd;
+    }
+
+    table tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    table tbody td {
+      padding: 12px;
       font-size: 0.9rem;
+      color: #34495e;
     }
-  }
-</style>
-<h1>Sales Report</h1>
 
-<div class="filters">
-  <form action="/admin/sales-report/filter" method="GET">
-    <select name="filter" id="filter">
-      <% let filter %>
-      <option value="today" <%= filter === "today" ? "selected" : "" %>>Today</option>
-      <option value="weekly" <%= filter === "weekly" ? "selected" : "" %>>Weekly</option>
-      <option value="monthly" <%= filter === "monthly" ? "selected" : "" %>>Monthly</option>
-      <option value="yearly" <%= filter === "yearly" ? "selected" : "" %>>Yearly</option>
-      <option value="specific" <%= filter === "specific" ? "selected" : "" %>>Specific Date</option>
-    </select>
-    <input type="date" id="startDate" name="startDate" >
-    <input type="date" id="endDate" name="endDate" >
-    <button type="submit">Filter</button>
-  </form>
-</div>
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px auto;
+    }
 
-<p>Total Revenue: ₹<%= totalRevenue %></p>
-<p>Total Offer: ₹<%= totalOffer  %></p>
+    .pagination a,
+    .pagination span {
+      padding: 10px 15px;
+      font-size: 1rem;
+      color: #3498db;
+      border: 1px solid #3498db;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
 
-<table>
-  <thead>
-    <tr>
-      <th>Order ID</th>
-      <th>User Name</th>
-      <th>Product Name</th>
-      <th>Quantity</th>
-      <th>Product Price</th>
-     
-      <th>Discount</th>
-      <th>Total Amount</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% orders.forEach(order => { %>
-      <% order?.items?.forEach(item => { %>
-        <tr>
-          <td><%= order._id %></td>
-          <td><%= order.userName %></td>
-          <td><%= item.productName %></td>
-          <td><%= item.quantity %></td>
-          <td><%= item.price %></td>
-          
-          <% if (order.discount) { %>
-            <td><%= order.discount %></td>
-          <% } else { %>
-            <td>0</td>
+    .pagination a:hover {
+      background-color: #3498db;
+      color: #fff;
+    }
+
+    .pagination .active {
+      background-color: #3498db;
+      color: #fff;
+      border-color: #3498db;
+    }
+
+    .downloads {
+      text-align: center;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .downloads a {
+      padding: 10px 20px;
+      font-size: 1rem;
+      text-decoration: none;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .downloads a[href*='pdf'] {
+      background-color: #e74c3c;
+    }
+
+    .downloads a[href*='pdf']:hover {
+      background-color: #c0392b;
+    }
+
+    .downloads a[href*='excel'] {
+      background-color: #27ae60;
+    }
+
+    .downloads a[href*='excel']:hover {
+      background-color: #1e8449;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      .filters select,
+      .filters button {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+  <h1>Sales Report</h1>
+
+  <div class="filters">
+    <form action="/admin/sales-report/filter" method="GET">
+      <select name="filter" id="filter">
+        <% let filter %>
+        <option ><%=fil?fil:"select"%></option>
+
+          <option value="today" <%=filter==="today" ? "selected" : "" %>>Today</option>
+          <option value="weekly" <%=filter==="weekly" ? "selected" : "" %>>Weekly</option>
+          <option value="monthly" <%=filter==="monthly" ? "selected" : "" %>>Monthly</option>
+          <option value="yearly" <%=filter==="yearly" ? "selected" : "" %>>Yearly</option>
+          <option value="specific" <%=filter==="specific" ? "selected" : "" %>>Specific Date</option>
+      </select>
+      <input type="date" id="startDate" name="startDate">
+      <input type="date" id="endDate" name="endDate">
+
+      <button type="submit">Filter</button>
+
+    </form>
+    <a href="/admin/sales-report-page" class="btn btn-danger">Clear Filter</a>
+
+  </div>
+
+  <p>Total Revenue: ₹<%= totalRevenue %>
+  </p>
+  <p>Total Offer: ₹<%= totalOffer %>
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Order ID</th>
+        <th>User Name</th>
+        <th>Product Name</th>
+        <th>Quantity</th>
+        <th>Product Price</th>
+
+        <th>Discount</th>
+        <th>Total Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% orders.forEach(order=> { %>
+        <% order?.items?.forEach(item=> { %>
+          <tr>
+            <td>
+              <%= order.createdAt.toDateString() %>
+            </td>
+            <td>
+              <%= order._id %>
+            </td>
+            <td>
+              <%= order.userName %>
+            </td>
+            <td>
+              <%= item.productName %>
+            </td>
+            <td>
+              <%= item.quantity %>
+            </td>
+            <td>
+              <%= item.price %>
+            </td>
+
+            <% if (order.discount) { %>
+              <td>
+                <%= order.discount %>
+              </td>
+              <% } else { %>
+                <td>0</td>
+                <% } %>
+                  <td>
+                    <%= (item.price*item.quantity)-order.discount %>
+                  </td>
+          </tr>
+          <% }); %>
+            <% }); %>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <% if (currentPage> 1) { %>
+      <a href="?page=<%= currentPage - 1 %>&filter=<%=fil%>">Previous</a>
+      <% } %>
+
+        <% for (let i=1; i <=totalPages; i++) { %>
+          <a href="?page=<%= i %>&filter=<%=fil%>" <%=currentPage===i ? "class='active'" : "" %>><%= i %></a>
           <% } %>
-          <td><%= (item.price*item.quantity)-order.discount %></td>
-        </tr>
-      <% }); %>
-    <% }); %>
-  </tbody>
-</table>
 
-<div class="pagination">
-  <% if (currentPage > 1) { %>
-    <a href="?page=<%= currentPage - 1 %>&filter=<%= filter %>">Previous</a>
-  <% } %>
-  
-  <% for (let i = 1; i <= totalPages; i++) { %>
-    <a href="?page=<%= i %>&filter=<%= filter %>" <%= currentPage === i ? "class='active'" : "" %>><%= i %></a>
-  <% } %>
-  
-  <% if (currentPage < totalPages) { %>
-    <a href="?page=<%= currentPage + 1 %>&filter=<%= filter %>">Next</a>
-  <% } %>
-</div>
+            <% if (currentPage < totalPages) { %>
+              <a href="?page=<%= currentPage + 1 %>&filter=<%=fil%>">Next</a>
+              <% } %>
+  </div>
 
 
-<div class="downloads">
-  <a href="/admin/sales-report/pdf?filter=<%= filter %>">Download PDF</a>
-  <a href="/admin/sales-report/excel?filter=<%= filter %>">Download Excel</a>
-</div>
+  <div class="downloads">
+    <a href="/admin/sales-report/pdf?filter=<%= fil%>">Download PDF</a>
+    <a href="/admin/sales-report/excel?filter=<%= fil %>">Download Excel</a>
+  </div>
 
-<%- include("../partials/admin/footer.ejs") %>
-
-
+  <%- include("../partials/admin/footer.ejs") %>
 
 
-<!-- <script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const filterSelect = document.getElementById("filter");
+        const startDateInput = document.getElementById("startDate");
+        const endDateInput = document.getElementById("endDate");
+
+        // Disable date inputs initially
+        startDateInput.disabled = true;
+        endDateInput.disabled = true;
+
+        // Disable future dates
+        const today = new Date().toISOString().split("T")[0];
+        startDateInput.setAttribute("max", today);
+        endDateInput.setAttribute("max", today);
+
+        // Function to enable/disable date inputs
+        filterSelect.addEventListener("change", function () {
+          if (this.value === "specific") {
+            startDateInput.disabled = false;
+            endDateInput.disabled = false;
+          } else {
+            startDateInput.disabled = true;
+            endDateInput.disabled = true;
+            startDateInput.value = ""; // Clear previous values
+            endDateInput.value = "";
+          }
+        });
+      });
+    </script>
+
+
+    <!-- <script>
   const filter = document.getElementById("filter");
   const startDate = document.getElementById("startDate");
   const endDate = document.getElementById("endDate");

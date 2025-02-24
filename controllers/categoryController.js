@@ -88,7 +88,7 @@ const addCatogary = async (req, res) => {
     const { name, description } = req.body;
 
     if (!name || !description) {
-        return res.status(400).json({ status: false, message: "Name and description are required." });
+        return res.status(400).json({ success: false, message: "Name and description are required." });
     }
 
     try {
@@ -108,36 +108,36 @@ const addCatogary = async (req, res) => {
         });
 
         await newCategory.save();
-        return res.status(201).json({ status: true, message: "Category added successfully!" });
+        return res.status(201).json({success: true, message: "Category added successfully!" });
 
     } catch (error) {
         console.error("Error adding category:", error);
-        return res.status(500).json({ status: false, message: "Internal server error." });
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 
 
 const addCategoryOffer = async (req, res) => {
     try {
-        const { categoryId, offer } = req.body;
+        const { catid, offerValue } = req.body;
 
         // Validate the offer range
-        if (offer < 0 || offer > 100) {
-            return res.status(500).send("The offer must be between 0-100");
+        if (offerValue < 0 || offerValue > 100) {
+            return res.status(500).json({success:false,message:"offer is not valied"})
         }
 
         // Find the category by ID
-        const category = await Category.findById(categoryId);
+        const category = await Category.findById(catid);
         if (!category) {
-            return res.status(500).send("The category was not found");
+            return res.status(500).json({success:false,message:"category is not find"})
         }
 
         // Update the category offer
-        category.categoryOffres = offer;
+        category.categoryOffres = offerValue;
         await category.save();
 
         // Get all products
-        const products = await Product.find({category:categoryId});
+        const products = await Product.find({category:catid});
         // console.log(products)
 
         // Update the salePrice for each product
@@ -147,7 +147,7 @@ const addCategoryOffer = async (req, res) => {
                 // console.log("product:",productOfferPrice);
                 
             const categoryOfferPrice =
-                product.regularPrice - (product.regularPrice * offer) / 100 || 0;
+                product.regularPrice - (product.regularPrice * offerValue) / 100 || 0;
                 // console.log("cat:",categoryOfferPrice)
 
             const finalPrice = Math.min(productOfferPrice, categoryOfferPrice);
@@ -159,7 +159,7 @@ const addCategoryOffer = async (req, res) => {
         }
 
         // Redirect to the category page
-        res.redirect('/admin/catogary');
+        res.json({success:true,message:"category added success"});
     } catch (error) {
         res.status(500).json({ status: false, message: "Internal server error" });
         console.error(error);
@@ -261,10 +261,12 @@ const updateCategory = async (req, res) => {
 
 const getCategoryoffer= async(req,res)=>{
     try {
-        const categories= await Category.find()
-        res.render('addcategoryoffer',{categories})
+        const id=req.query.id
+        const currcat=await Category.findById(id)
+        const categories= await Category.find({isListed:true})
+        res.render('addcategoryoffer',{categories,currcat})
     } catch (error) {
-        
+        cosnole.log(error);        
     }
 }
 

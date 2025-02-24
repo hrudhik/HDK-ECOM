@@ -22,7 +22,6 @@
                       <tr>
                           <td>
                               <img src="/uploads/re-image/<%=data[i].image%>" style="height: 2rem; width: 3rem;" class="img-xs" alt="Item">
-
                           </td>
                           <td>
                             <%=data[i].title%>
@@ -38,10 +37,9 @@
                                   <%}%>
                           </td>
 
-
-
-
-                          <td class="action" data-title="Remove"><a href="/admin/deleteBanner?id=<%=data[i]._id%>">Delete</a></td>
+                          <td class="action" data-title="Remove">
+                              <a href="#" onclick="confirmDelete('<%=data[i]._id%>')" class="text-danger">Delete</a>
+                          </td>
                       </tr>
                       <%}%>
                       <%}else{%>
@@ -61,8 +59,25 @@
   </div>
   </div>
 
-
-
-
 <%- include("../partials/admin/footer.ejs") %>
 
+<!-- Include SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  function confirmDelete(bannerId) {
+      Swal.fire({
+          title: "Are you sure?",
+          text: "This action will delete the banner permanently!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, delete it!"
+      }).then((result) => {
+          if (result.isConfirmed) {
+              window.location.href = "/admin/deleteBanner?id=" + bannerId;
+          }
+      });
+  }
+</script>

@@ -41,6 +41,7 @@
                             <div class="col-lg-4 mb-4">
                                 <label class="form-label">Brand</label>
                                 <select class="form-select border" name="brand">
+                                    <option value="">Select</option>
                                     <% for(let i = 0; i < brand.length; i++) { %>
                                         <option value="<%= brand[i].brandName %>"><%= brand[i].brandName %></option>
                                     <% } %>
@@ -96,13 +97,9 @@
                                         <div class="col-sm-6 mb-3">
                                             <label class="form-label">Category</label>
                                             <select class="form-select border" style="width: 150px;" name="category">
+                                                <option value="">Selsect</option>
                                                 <%for(let i=0;i<cat.length;i++){%>
-
-
-
-                                                <option value="<%=cat[i].name%>">
-                                                    <%=cat[i].name%>
-                                                </option>
+                                                <option value="<%=cat[i].name%>"> <%=cat[i].name%>                                                </option>
 
                                                 <%}%>
 
@@ -228,7 +225,7 @@
                               </div>
                     </div>
                     <div>
-                        <button class="btn btn-md rounded font-sm hover-up" type="submit" onclick="validateAndSubmit()">Publish</button>
+                        <button class="btn btn-md rounded font-sm hover-up btn-success" type="submit" onclick="validateAndSubmit()">Publish</button>
 
                     </div>
                     </form>

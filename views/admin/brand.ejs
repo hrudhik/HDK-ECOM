@@ -1,4 +1,3 @@
-
 <%- include("../partials/admin/header.ejs") %>
 
 <style>
@@ -26,6 +25,7 @@
     color: red;
   }
 </style>
+
 <head>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -39,13 +39,12 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-3">
-          <form id="brandForm" >
+          <form id="brandForm">
             <div class="mb-4">
               <label class="form-label">Brand Name</label>
               <input type="text" id="brandName" name="name" placeholder="Type here" class="form-control" required />
+              <div id="name-error" class="text-danger"></div>
             </div>
-
-            
 
             <div class="d-grid">
               <button class="btn btn-primary mt-20" type="submit">Add Brand</button>
@@ -67,32 +66,20 @@
                 <% data.reverse().forEach((brand) => { %>
                 <tr>
                   <td class="text-start"><%= brand.brandName %></td>
-                  
+
                   <td class="text-start">
                     <% if(brand.isBlocked===true){%>
-                      <span
-                        class="badge rounded-pill alert-danger"
-                        style="width: 60px; color:black ;"
-                        >Blocked</span
-                      >
-                        <%}else{%>
-                      <span
-                        class="badge rounded-pill alert-success"
-                        style="width: 60px; color:black ;"
-                        >Active</span
-                      >
-                      <%}%>
+                      <span class="badge rounded-pill alert-danger" style="width: 60px; color:black;">Blocked</span>
+                    <%}else{%>
+                      <span class="badge rounded-pill alert-success" style="width: 60px; color:black;">Active</span>
+                    <%}%>
                   </td>
                   <td class="text-start">
                     <%if(brand.isBlocked===false){%>
-                      <button class="btn btn-danger" style="width: 90px">
-                        <a href="/admin/blockeBrand?id=<%=brand._id%>" class="text-white">Block</a>
-                      </button>
-                      <%}else{%>
-                      <button class="btn btn-success" style="width: 90px">
-                        <a href="/admin/unblockeBrand?id=<%=brand._id%>" class="text-white">Unblock</a>
-                      </button>
-                      <%}%>
+                      <button class="btn btn-danger" style="width: 90px" onclick="confirmBlockUnblock('<%= brand._id %>', true)">Block</button>
+                    <%}else{%>
+                      <button class="btn btn-success" style="width: 90px" onclick="confirmBlockUnblock('<%= brand._id %>', false)">Unblock</button>
+                    <%}%>
                     <button class="btn btn-danger" onclick="confirmDelete('<%= brand._id %>')">Delete</button>
                   </td>
                 </tr>
@@ -107,26 +94,31 @@
 </section>
 
 <script>
+// ✅ Brand Name Validation
 document.getElementById("brandForm").addEventListener("submit", async function (event) {
   event.preventDefault();
 
-  const brandName = document.getElementById("brandName").value.trim();
+  const brandNameInput = document.getElementById("brandName");
+  const brandName = brandNameInput.value.trim();
+  const nameError = document.getElementById("name-error");
 
-  // Validate brand name
+  const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;  // Allows only letters & single spaces
+
+  // ✅ Validate Brand Name
   if (!brandName) {
-    Swal.fire("Validation Error", "Brand name is required.", "warning");
+    nameError.textContent = "Brand name is required.";
     return;
+  } else if (!nameRegex.test(brandName)) {
+    nameError.textContent = "Only letters allowed. Single spaces between words.";
+    return;
+  } else if (/^\s+|\s+$/.test(brandNameInput.value)) {
+    nameError.textContent = "Cannot start or end with a space.";
+    return;
+  } else {
+    nameError.textContent = "";
   }
 
-  if (!/^[a-zA-Z\s]+$/.test(brandName)) {
-    Swal.fire("Validation Error", "Brand name must contain only letters.", "warning");
-    return;
-  }
-
-  // Validate image
-  
-
-
+  // ✅ If valid, submit via AJAX
   const formData = new FormData();
   formData.append("name", brandName);
 
@@ -138,15 +130,40 @@ document.getElementById("brandForm").addEventListener("submit", async function (
 
     const result = await response.json();
     if (response.ok) {
-      Swal.fire("Success", "Brand added successfully!", "success").then(() => location.reload());
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: "Brand added successfully!",
+        toast: true,
+        position: "top-end",
+        timer: 2000,
+        showConfirmButton: false
+      }).then(() => location.reload());
     } else {
-      Swal.fire("Error", result.message || "Failed to add brand.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: result.message || "Failed to add brand.",
+        toast: true,
+        position: "top-end",
+        timer: 3000,
+        showConfirmButton: false
+      });
     }
   } catch (error) {
-    Swal.fire("Error", "Something went wrong!", "error");
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Something went wrong!",
+      toast: true,
+      position: "top-end",
+      timer: 3000,
+      showConfirmButton: false
+    });
   }
 });
 
+// ✅ Confirm Delete Brand
 function confirmDelete(brandId) {
   Swal.fire({
     title: "Are you sure?",
@@ -157,7 +174,23 @@ function confirmDelete(brandId) {
     cancelButtonText: "Cancel"
   }).then(async (result) => {
     if (result.isConfirmed) {
-      window.location.href = "/admin/deletBrand?id="+brandId;
+      window.location.href = "/admin/deletBrand?id=" + brandId;
+    }
+  });
+}
+
+// ✅ Confirm Block/Unblock Brand
+function confirmBlockUnblock(brandId, isBlocking) {
+  Swal.fire({
+    title: isBlocking ? "Block this brand?" : "Unblock this brand?",
+    text: isBlocking ? "The brand will be blocked." : "The brand will be unblocked.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: isBlocking ? "Yes, block it!" : "Yes, unblock it!",
+    cancelButtonText: "Cancel"
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      window.location.href = isBlocking ? "/admin/blockeBrand?id=" + brandId : "/admin/unblockeBrand?id=" + brandId;
     }
   });
 }

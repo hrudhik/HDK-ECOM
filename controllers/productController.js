@@ -154,7 +154,7 @@ const unblockProduct = async (req, res) => {
 const editProduct = async (req, res) => {
     try {
         const id = req.query.id;
-        const product = await Product.findOne({ _id: id });
+        const product = await Product.findOne({ _id: id }).populate('category');
         const category = await Category.find({});
         const brand = await Brand.find({});
         res.render("editProduct", {
@@ -249,7 +249,7 @@ const deleteoneimage = async (req, res) => {
         });
 
         if (!product) {
-            return res.status(404).json({ status: false, message: "Product not found" });
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
 
         // Build the file path to delete the image file
@@ -259,7 +259,7 @@ const deleteoneimage = async (req, res) => {
             fs.unlink(imagePath, (err) => {
                 if (err) {
                     console.error("Failed to delete file:", err);
-                    return res.status(500).json({ status: false, message: "File deletion failed" });
+                    return res.status(500).json({ success: false, message: "File deletion failed" });
                 }
                 console.log(`Image ${imageNameToServer} deleted successfully.`);
             });
@@ -267,10 +267,10 @@ const deleteoneimage = async (req, res) => {
             console.log(`Image ${imageNameToServer} not found.`);
         }
 
-        res.status(200).json({ status: true, message: "Image deleted successfully" });
+        res.status(200).json({ success: true, message: "Image deleted successfully" });
     } catch (error) {
         console.error("Error deleting image:", error);
-        res.status(500).json({ status: false, message: "Internal Server Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 

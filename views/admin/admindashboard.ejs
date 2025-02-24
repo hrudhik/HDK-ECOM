@@ -27,7 +27,7 @@
                
                 <input type="date" id="startDate" class="p-2 border rounded-md hidden" max="">
                 <input type="date" id="endDate" class="p-2 border rounded-md hidden" max="">
-                <button id="applyFilter" class="p-2 bg-blue-500 text-white rounded-md hidden">Apply</button>
+                <button id="applyFilter" >Apply</button>
             </div>
 
             <canvas id="salesChart" class="w-full"></canvas>
@@ -49,6 +49,39 @@
         </div>
     </div>
     <script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const filterSelect = document.getElementById("filter");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    const applyButton = document.getElementById("applyFilter");
+
+    // Disable date inputs and button initially
+    startDateInput.disabled = true;
+    endDateInput.disabled = true;
+    applyButton.disabled = true;
+
+    // Disable future dates
+    const today = new Date().toISOString().split("T")[0];
+    startDateInput.setAttribute("max", today);
+    endDateInput.setAttribute("max", today);
+
+    // Function to enable/disable date inputs and button
+    filterSelect.addEventListener("change", function () {
+        if (this.value === "custom") {
+            startDateInput.disabled = false;
+            endDateInput.disabled = false;
+            applyButton.disabled = false;
+        } else {
+            startDateInput.disabled = true;
+            endDateInput.disabled = true;
+            applyButton.disabled = true;
+            startDateInput.value = ""; // Clear previous values
+            endDateInput.value = "";
+        }
+    });
+});
+
         let salesChart, productChart, brandChart, categoryChart;
     
         async function fetchData(url) {

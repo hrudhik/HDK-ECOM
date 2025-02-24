@@ -120,6 +120,7 @@ const customerInfo = async (req, res) => {
             currentPage: page,
             search,
         });
+        
     } catch (error) {
         console.log(error);
         res.status(500).send("Internal Server Error");
@@ -150,6 +151,7 @@ const customerUnblocked = async (req, res) => {
     try {
         let id = req.query.id;
         await User.updateOne({ _id: id }, { $set: { isBlocked: false } })
+        res.redirect('/admin/users')
     } catch (error) {
         console.log(error);
         res.redirect('/pagenotfound')

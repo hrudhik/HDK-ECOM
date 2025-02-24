@@ -1,21 +1,23 @@
-
 <%- include("../partials/admin/header.ejs") %>
 
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
             <form id="editcategoryform">
-                <div class="d-grid text-end mt-30 col-md-5">
-                    <button class="btn btn-primary" type="submit">Update category</button>
-                </div>
+               
                 <div class="mb-4 mt-30">
                     <label for="categoryName" class="form-label">Name</label>
                     <input type="text" id="categoryName" name="categoryName" value="<%=category.name%>" class="form-control border" />
+                    <div id="name-error" class="text-danger"></div>
                 </div>
                 
                 <div class="mb-4">
                     <label class="form-label">Description</label>
                     <textarea id="description" name="description" class="form-control border"><%=category.description%></textarea>
+                    <div id="description-error" class="text-danger"></div>
+                </div>
+                <div class="d-grid text-end mt-30 col-md-5">
+                    <button class="btn btn-primary" type="submit">Update category</button>
                 </div>
             </form>
         </div>
@@ -33,55 +35,96 @@ document.addEventListener("DOMContentLoaded", function () {
     form.addEventListener("submit", async function (event) {
         event.preventDefault(); // Prevent default form submission
 
-        const categoryName = document.getElementById("categoryName").value.trim();
-        const description = document.getElementById("description").value.trim();
+        const nameInput = document.getElementById("categoryName");
+        const descriptionInput = document.getElementById("description");
 
-        // ✅ Frontend Validation
-        if (!categoryName || !description) {
-            Swal.fire({
-                icon: "warning",
-                title: "Invalid Input",
-                text: "Both category name and description are required.",
-            });
-            return;
+        const nameError = document.getElementById("name-error");
+        const descriptionError = document.getElementById("description-error");
+
+        let categoryName = nameInput.value.trim();
+        let description = descriptionInput.value.trim();
+
+        // ✅ Regular Expressions
+        const nameRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/;  // Allows only letters & single spaces
+        const descriptionRegex = /^[A-Za-z]+(?: [A-Za-z]+)*$/; // Allows only letters & single spaces
+
+        let isValid = true;
+
+        // ✅ Validate Category Name
+        if (!categoryName) {
+            nameError.textContent = "Category name is required.";
+            isValid = false;
+        } else if (!nameRegex.test(categoryName)) {
+            nameError.textContent = "Only letters allowed. Single spaces between words.";
+            isValid = false;
+        } else if (/^\s+|\s+$/.test(nameInput.value)) {
+            nameError.textContent = "Cannot start or end with a space.";
+            isValid = false;
+        } else {
+            nameError.textContent = "";
         }
 
-        try {
-            const response = await fetch("/admin/editCategory?id=<%=category._id%>", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ categoryName, description }),
-            });
+        // ✅ Validate Description
+        if (!description) {
+            descriptionError.textContent = "Description is required.";
+            isValid = false;
+        } else if (!descriptionRegex.test(description)) {
+            descriptionError.textContent = "Only letters allowed. Single spaces between words.";
+            isValid = false;
+        } else if (/^\s+|\s+$/.test(descriptionInput.value)) {
+            descriptionError.textContent = "Cannot start or end with a space.";
+            isValid = false;
+        } else {
+            descriptionError.textContent = "";
+        }
 
-            const result = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Category Updated",
-                    text: "The category has been successfully updated.",
-                }).then(() => {
-                    window.location.href= "/admin/catogary"
+        // ✅ Submit only if validation passes
+        if (isValid) {
+            try {
+                const response = await fetch("/admin/editCategory?id=<%=category._id%>", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ categoryName, description }),
                 });
-            } else {
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Category Updated",
+                        text: "The category has been successfully updated.",
+                        toast: true,
+                        position: "top-end",
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = "/admin/catogary";
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Update Failed",
+                        text: result.error || "An error occurred while updating the category.",
+                        toast: true,
+                        position: "top-end",
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (error) {
+                console.error("Update Error:", error);
                 Swal.fire({
                     icon: "error",
-                    title: "Update Failed",
-                    text: result.error || "An error occurred while updating the category.",
+                    title: "Server Error",
+                    text: "Something went wrong. Please try again later.",
+                    toast: true,
+                    position: "top-end",
+                    timer: 3000,
+                    showConfirmButton: false
                 });
             }
-        } catch (error) {
-            console.error("Update Error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Server Error",
-                text: "Something went wrong. Please try again later.",
-            });
         }
     });
 });
 </script>
-
-
-
-

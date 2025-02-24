@@ -105,6 +105,7 @@ const renderSalesReportPage = async (req, res) => {
       totalRevenue: totalRevenue[0]?.totalRevenue || 0,
       currentPage: page,
       totalPages,
+      fil:"",
       totalOffer: totalOffer[0]?.Offer || 0,
     });
   } catch (error) {
@@ -113,12 +114,11 @@ const renderSalesReportPage = async (req, res) => {
   }
 };
 
-// Function to fetch sales data with pagination
 const getSalesReport = async (req, res) => {
   try {
-    const { filter, startDate, endDate, page = 1, limit = 5 } = req.query;
+    const { filter, startDate, endDate, page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
-
+    let filters=filter;
     let matchCondition = {};
 
     if (filter === "today") {
@@ -236,6 +236,7 @@ const getSalesReport = async (req, res) => {
         },
       },
     ]);
+    // console.log(filter,filters)
 
     let totalOrders=(await Order.aggregate([{ $match: matchCondition },{$unwind:"$items"},{$match:{"items.status":"Delivered"}}])).length;   
      const totalPages = Math.ceil(totalOrders / limit);
@@ -246,7 +247,7 @@ const getSalesReport = async (req, res) => {
       totalRevenue: totalRevenue[0]?.totalRevenue || 0,
       currentPage: parseInt(page),
       totalPages,
-      filter,
+      fil:filters,
       totalOffer: totalOffer[0]?.Offer || 0,
     });
   } catch (error) {

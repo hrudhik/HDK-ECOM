@@ -169,8 +169,9 @@
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("couponform"); // ✅ Corrected Selector
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("couponform"); 
+    const codeInput = document.querySelector("input[name='code']");
     const discountInput = document.querySelector("input[name='discountPercentage']");
     const endDateInput = document.querySelector("input[name='endDate']");
     const minPurchaseInput = document.querySelector("input[name='minPurchaseAmount']");
@@ -182,6 +183,30 @@
         event.preventDefault(); // Prevent default form submission
         let isValid = true;
         let errorMessage = "";
+
+        // Validate Coupon Code
+        const codeValue = codeInput.value.trim(); // Trim to remove leading/trailing spaces
+
+        if (!codeValue) {
+            errorMessage += "Coupon code cannot be empty or only spaces.<br>";
+            isValid = false;
+        }
+        if (/^\s|\s$/.test(codeInput.value)) {
+            errorMessage += "Coupon code cannot start or end with a space.<br>";
+            isValid = false;
+        }
+        if (/^\d+$/.test(codeValue)) {
+            errorMessage += "Coupon code cannot be only numbers.<br>";
+            isValid = false;
+        }
+        if (/^[^a-zA-Z0-9]+$/.test(codeValue)) {
+            errorMessage += "Coupon code cannot be only special characters.<br>";
+            isValid = false;
+        }
+        if (/\s{2,}/.test(codeValue)) {
+            errorMessage += "Coupon code cannot contain excessive spaces.<br>";
+            isValid = false;
+        }
 
         // Validate Discount Percentage (1-99)
         const discountValue = parseInt(discountInput.value);
@@ -255,6 +280,9 @@
         }
     });
 });
+
+
+
 
 
     function confirmDelete(couponId) {

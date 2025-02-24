@@ -135,10 +135,6 @@ router.get("/paymentfailer", userAuth, (req, res) => {
   res.render("paymentfailer");
 });
 router.post("/retrypayment", userAuth, paymentController.retrypayment);
-router.post(
-  "/update-payment-status",
-  userAuth,
-  paymentController.updatepaymentstatus
-);
+router.post("/update-payment-status",userAuth,paymentController.updatepaymentstatus);
 
 module.exports = router;

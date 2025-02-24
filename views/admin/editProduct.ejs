@@ -51,6 +51,7 @@
                            <div class="col-lg-4 mb-4">
                                <label class="form-label">Brand</label>
                                <select class="form-select border" name="brand">
+                                <option value="<%=product.brand%>"><%=product.brand%></option>
                                   <% for(let i=0;i<brand.length;i++){%>
                                        <option value="<%=brand[i].brandName%>">
                                           <%=brand[i].brandName%>
@@ -113,6 +114,7 @@
                                        <div class="col-sm-6 mb-3">
                                            <label class="form-label">Category</label>
                                            <select class="form-select border" style="width: 150px;" name="category">
+                                            <option value="<%=product.category%>"><%=product.category.name%></option>
                                               <%for(let i=0;i<cat.length;i++){%>
                                                    <option value="<%=cat[i]._id%>">
                                                     <%=cat[i].name%>
@@ -156,7 +158,7 @@
                                                  <img
                                                    class="rounded"
                                                    style="width: 50px; height: 60px;"
-                                                   src="/uploads/product-images/<%= product.productImage[i] %>"
+                                                   src="/uploads/re-image/<%= product.productImage[i] %>"
                                                    alt=""
                                                  >
                                                  <!-- Delete icon with onclick -->
@@ -235,7 +237,8 @@
                            <div>
 
 
-                               <button class="btn btn-md rounded font-sm hover-up" id="updatebtn"
+                               <button class="btn btn-md rounded font-sm hover-up btn-success
+                               "  id="updatebtn"
                                    type="button"  onclick="validateAndSubmit()">Update</button>
                            </div>
                        </form>
@@ -249,33 +252,60 @@
    <script>
 
 
-                                         function deleteSingleImage(imageName, productId) {
-                                            console.log("ESG    EQRBQERFQETGQERGQEGR")
-                                           // Send the image name and product ID to the backend
-                                           fetch('/admin/deleteImage', {
-                                             method: 'POST', // Use POST for sending data
-                                             headers: {
-                                               'Content-Type': 'application/json', // Specify JSON data format
-                                             },
-                                             body: JSON.stringify({
-                                               imageNameToServer: imageName, // Key for the image name
-                                               productIdToServer: productId, // Key for the product ID
-                                             }),
-                                           })
-                                             .then((response) => response.json())
-                                             .then((data) => {
-                                               if (data.status === true) {
-                                                 // Remove the specific image container from the DOM
-                                                 document.getElementById(`image-${imageName}`).remove();
-                                               } else {
-                                                 alert(data.message); // Display error message
-                                               }
-                                             })
-                                             .catch((err) => {
-                                               console.error('Error:', err);
-                                             });
-                                         }
-                                       
+function deleteSingleImage(imageName, productId) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This image will be deleted permanently!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with deletion
+            fetch('/admin/deleteImage', {
+                method: 'POST', // Use POST for sending data
+                headers: {
+                    'Content-Type': 'application/json', // Specify JSON data format
+                },
+                body: JSON.stringify({
+                    imageNameToServer: imageName, // Key for the image name
+                    productIdToServer: productId, // Key for the product ID
+                }),
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success === true) {
+                    // Remove the specific image container from the DOM
+                    document.getElementById(`image-${imageName}`).remove();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Deleted!",
+                        text: "The image has been deleted.",
+                        confirmButtonColor: "#3085d6"
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: data.message,
+                    });
+                }
+            })
+            .catch((err) => {
+                console.error("Error:", err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Server Error",
+                    text: "Something went wrong. Please try again later.",
+                });
+            });
+        }
+    });
+}
+
 
 
 
